@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>DDEV Manager settings</title>
+        <link rel="stylesheet" href="ui.css" />
+    </head>
+    <body class="options">
+        <h1>DDEV Manager</h1>
+        <p class="muted">Local projects, grouped by the work you’re doing.</p>
+        <h2>Companion connection</h2>
+        <p>
+            Install the companion from the Cortier release package, then run its installer. DDEV and Git must already be
+            installed.
+        </p>
+        <p>
+            Automatic removal works when Firefox opens the uninstall page and the cleanup service is running. The
+            companion stays installed while other Firefox profiles are registered.
+        </p>
+        <p>
+            For manual removal, run the package’s <code>uninstall.sh</code> script. Removing the companion affects every
+            Firefox profile using it. Your DDEV projects stay untouched.
+        </p>
+        <button id="check">Check connection</button>
+        <pre id="diagnostics" role="status">Checking connection…</pre>
+        <h2>Executable paths</h2>
+        <form id="form">
+            <label for="ddev">DDEV executable</label><input id="ddev" placeholder="/usr/local/bin/ddev" /><label
+                for="git"
+                >Git executable</label
+            ><input id="git" placeholder="/usr/bin/git" />
+            <h2>Project names</h2>
+            <p>
+                Override inferred product or surface labels by DDEV project name. Task branches still group by their
+                full branch name.
+            </p>
+            <label for="overrides">Naming overrides (JSON)</label
+            ><textarea id="overrides" spellcheck="false" aria-describedby="example"></textarea>
+            <p id="example" class="muted">Example: {"example-api": {"product": "Example", "surface": "API"}}</p>
+            <button type="submit">Save settings</button>
+        </form>
+        <p id="result" role="status" aria-live="polite"></p>
+        <script src="options.js"></script>
+    </body>
+</html>

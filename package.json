@@ -1,0 +1,23 @@
+{
+    "name": "ddev-extension",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "check": "tsc --noEmit",
+        "test": "vitest run",
+        "test:ui": "playwright test",
+        "lint:extension": "web-ext lint --source-dir dist/extension --warnings-as-errors",
+        "package": "npm run build && node scripts/package.mjs"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.63.0",
+        "@types/firefox-webext-browser": "^143.0.1",
+        "esbuild": "^0.28.2",
+        "prettier": "^3.9.9",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.3",
+        "web-ext": "^10.7.0"
+    }
+}

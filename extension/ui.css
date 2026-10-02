@@ -1,0 +1,308 @@
+:root {
+    color-scheme: light dark;
+    --bg: #fff;
+    --fg: #15141a;
+    --muted: #5b5b66;
+    --hover: #f0f0f4;
+    --input: #fff;
+    --border: #8f8f9d;
+    --line: #e0e0e6;
+    --accent: #0060df;
+    --danger: #c50042;
+    --running: #00875a;
+    --soft: #f9f9fb;
+    --focus: #0060df;
+    font:
+        13px system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #42414d;
+        --fg: #fbfbfe;
+        --muted: #c6c6d0;
+        --hover: #52515e;
+        --input: #2b2a33;
+        --border: #8f8f9d;
+        --line: #5b5b66;
+        --accent: #00ddff;
+        --danger: #ff9aa2;
+        --running: #54dfba;
+        --soft: #383742;
+        --focus: #00ddff;
+    }
+}
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+}
+body.popup {
+    width: 360px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+button,
+input,
+textarea {
+    font: inherit;
+}
+button {
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background: var(--hover);
+}
+button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+header {
+    height: 49px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+}
+h1 {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+}
+.icon-button {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 19px;
+}
+.icon-button svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.search-area {
+    padding: 16px 16px 10px;
+}
+.search-area label {
+    display: block;
+    margin-bottom: 8px;
+}
+input,
+textarea {
+    width: 100%;
+    padding: 9px 10px;
+    background: var(--input);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+input::placeholder {
+    color: var(--muted);
+}
+#tasks {
+    overflow-y: auto;
+    min-height: 150px;
+    max-height: 410px;
+    padding: 0 8px 8px;
+    scrollbar-width: thin;
+}
+.task {
+    padding: 8px 0;
+    border-top: 1px solid var(--line);
+}
+.task:first-child {
+    border-top: 0;
+}
+.task-heading {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px 3px;
+}
+.task-heading h2 {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 0;
+    flex: 1;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+.actions {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+}
+.branch {
+    font-size: 10px;
+    color: var(--muted);
+    margin: 0 8px 5px;
+    overflow-wrap: anywhere;
+}
+.surface-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin: 0 2px;
+    min-height: 34px;
+    border-radius: 4px;
+}
+.surface-row:hover {
+    background: var(--soft);
+}
+.surface-open {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+    padding: 8px;
+}
+.surface-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border: 1.6px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-dot.running {
+    border-color: var(--running);
+    background: var(--running);
+}
+.status-dot.paused {
+    border-color: #d99a22;
+}
+.surface-status {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 0 0 3px 29px;
+}
+.surface-status.error {
+    color: var(--danger);
+    overflow-wrap: anywhere;
+    max-height: 76px;
+    overflow: auto;
+}
+.service-menu {
+    padding: 5px 8px 8px 29px;
+    background: var(--soft);
+    border-radius: 4px;
+    margin: 0 2px 5px;
+}
+.service-menu button {
+    display: block;
+    text-align: left;
+    padding: 8px;
+    width: 100%;
+    overflow-wrap: anywhere;
+}
+.service-menu p {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 5px 0;
+}
+.empty {
+    padding: 25px 16px;
+    text-align: center;
+    color: var(--muted);
+    line-height: 1.6;
+}
+#notice:not(:empty) {
+    padding: 8px 16px;
+    font-size: 12px;
+    line-height: 1.5;
+    background: var(--soft);
+    overflow-wrap: anywhere;
+    max-height: 96px;
+    overflow: auto;
+}
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-top: 1px solid var(--line);
+    min-height: 45px;
+    flex-shrink: 0;
+}
+footer span {
+    font-size: 11px;
+    color: var(--muted);
+}
+footer button {
+    background: var(--hover);
+    padding: 7px 16px;
+}
+.options {
+    max-width: 700px;
+    margin: 32px auto;
+    padding: 0 24px 40px;
+    line-height: 1.6;
+}
+.options h1 {
+    font-size: 24px;
+    font-weight: 600;
+}
+.options h2 {
+    font-size: 16px;
+    margin-top: 28px;
+}
+.options label {
+    display: block;
+    margin-top: 14px;
+}
+.options textarea {
+    font:
+        12px ui-monospace,
+        monospace;
+    min-height: 140px;
+}
+.options button {
+    padding: 9px 16px;
+    background: var(--hover);
+    margin: 12px 8px 0 0;
+}
+.options pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: var(--soft);
+    padding: 14px;
+    border-radius: 4px;
+}
+.options .muted {
+    color: var(--muted);
+}
+#result {
+    overflow-wrap: anywhere;
+}

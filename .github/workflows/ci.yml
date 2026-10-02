@@ -1,0 +1,47 @@
+name: Validate and package
+on:
+    push:
+    pull_request:
+permissions:
+    contents: read
+jobs:
+    extension:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '24'
+                  cache: npm
+            - run: npm ci
+            - run: npm run check
+            - run: npm test
+            - run: npm run build
+            - run: npm run lint:extension
+            - run: npx playwright install --with-deps firefox
+            - run: npm run test:ui
+            - run: npm run package
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: firefox-extension-unsigned
+                  path: dist/*.zip
+    companion:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-go@v5
+              with:
+                  go-version-file: companion/go.mod
+                  cache-dependency-path: companion/go.sum
+            - run: go test -race ./...
+              working-directory: companion
+            - run: go vet ./...
+              working-directory: companion
+            - run: scripts/package-companion.sh
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: companion-${{ matrix.os }}
+                  path: dist/*.tar.gz

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>DDEV Manager</title>
+        <link rel="stylesheet" href="ui.css" />
+    </head>
+    <body class="popup">
+        <header>
+            <h1>DDEV Manager</h1>
+            <button id="refresh" class="icon-button" aria-label="Refresh projects" title="Refresh projects">↻</button>
+        </header>
+        <div class="search-area">
+            <label for="search">Tasks</label
+            ><input id="search" type="search" placeholder="Search tasks" autocomplete="off" autofocus />
+        </div>
+        <div id="notice" role="status" aria-live="polite"></div>
+        <main id="tasks" aria-label="DDEV tasks"></main>
+        <footer><span id="summary"></span><button id="settings">Settings</button></footer>
+        <script src="popup.js"></script>
+    </body>
+</html>
