@@ -6,10 +6,10 @@ permissions:
     contents: read
 jobs:
     extension:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v7.0.1
+            - uses: actions/setup-node@v7.0.0
               with:
                   node-version: '24'
                   cache: npm
@@ -21,18 +21,18 @@ jobs:
             - run: npx playwright install --with-deps firefox
             - run: npm run test:ui
             - run: npm run package
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@v7.0.1
               with:
                   name: firefox-extension-unsigned
                   path: dist/*.zip
     companion:
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest]
+                os: [ubuntu-24.04, macos-latest]
         runs-on: ${{ matrix.os }}
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-go@v5
+            - uses: actions/checkout@v7.0.1
+            - uses: actions/setup-go@v7.0.0
               with:
                   go-version-file: companion/go.mod
                   cache-dependency-path: companion/go.sum
@@ -41,7 +41,7 @@ jobs:
             - run: go vet ./...
               working-directory: companion
             - run: scripts/package-companion.sh
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@v7.0.1
               with:
                   name: companion-${{ matrix.os }}
                   path: dist/*.tar.gz
