@@ -9,7 +9,18 @@
     <body class="popup">
         <header>
             <h1>DDEV Manager</h1>
-            <button id="refresh" class="icon-button" aria-label="Refresh projects" title="Refresh projects">↻</button>
+            <div class="header-actions">
+                <button id="refresh" class="icon-button" aria-label="Refresh projects" title="Refresh projects">
+                    ↻
+                </button>
+                <button id="settings" class="icon-button" aria-label="Settings" title="Settings">
+                    <svg viewBox="0 0 20 20" aria-hidden="true">
+                        <path
+                            d="M8.2 5.1l.4-1.3h2.8l.4 1.3a7.5 7.5 0 0 1 1.5.9l1.3-.3L16 8.1l-.9 1a7.5 7.5 0 0 1 0 1.8l.9 1-1.4 2.4-1.3-.3a7.5 7.5 0 0 1-1.5.9l-.4 1.3H8.6l-.4-1.3a7.5 7.5 0 0 1-1.5-.9l-1.3.3L4 11.9l.9-1a7.5 7.5 0 0 1 0-1.8l-.9-1 1.4-2.4 1.3.3a7.5 7.5 0 0 1 1.5-.9ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                        />
+                    </svg>
+                </button>
+            </div>
         </header>
         <div class="search-area">
             <label for="search">Tasks</label
@@ -17,7 +28,7 @@
         </div>
         <div id="notice" role="status" aria-live="polite"></div>
         <main id="tasks" aria-label="DDEV tasks"></main>
-        <footer><span id="summary"></span><button id="settings">Settings</button></footer>
+        <footer><span id="summary"></span></footer>
         <script src="popup.js"></script>
     </body>
 </html>

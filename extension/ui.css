@@ -88,6 +88,10 @@ h1 {
     font-weight: 500;
     margin: 0;
 }
+.header-actions {
+    display: flex;
+    gap: 1px;
+}
 .icon-button {
     width: 28px;
     height: 28px;
@@ -250,7 +254,6 @@ input::placeholder {
 footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 8px 16px;
     border-top: 1px solid var(--line);
     min-height: 45px;
@@ -259,10 +262,6 @@ footer {
 footer span {
     font-size: 11px;
     color: var(--muted);
-}
-footer button {
-    background: var(--hover);
-    padding: 7px 16px;
 }
 .options {
     max-width: 700px;

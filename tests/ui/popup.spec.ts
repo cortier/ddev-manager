@@ -53,7 +53,9 @@ test.beforeEach(async ({ page }) => {
                             ];
                         return { ok: true };
                     },
-                    openOptionsPage: async () => {},
+                    openOptionsPage: async () => {
+                        (window as any).optionsOpened = true;
+                    },
                 },
             };
         },
@@ -119,4 +121,10 @@ test('task commands carry all surfaces and keyboard focus is visible', async ({ 
         action: 'stop',
         ids: ['inventory-sync-api', 'inventory-sync-app'],
     });
+});
+test('settings cog opens the Firefox options page', async ({ page }) => {
+    await page.goto('/popup.html');
+    await expect(page.locator('footer').getByRole('button')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect.poll(() => page.evaluate(() => (window as any).optionsOpened)).toBe(true);
 });
