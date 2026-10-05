@@ -167,8 +167,8 @@ input::placeholder {
 .surface-row {
     display: flex;
     align-items: center;
-    gap: 2px;
-    margin: 0 2px;
+    gap: 1px;
+    margin: 0 8px;
     min-height: 34px;
     border-radius: 4px;
 }
@@ -206,7 +206,7 @@ input::placeholder {
 .surface-status {
     font-size: 10px;
     color: var(--muted);
-    padding: 0 0 3px 29px;
+    padding: 0 8px 3px 35px;
 }
 .surface-status.error {
     color: var(--danger);
@@ -218,7 +218,7 @@ input::placeholder {
     padding: 5px 8px 8px;
     background: var(--soft);
     border-radius: 4px;
-    margin: 0 2px 5px;
+    margin: 0 8px 5px;
 }
 .service-menu button {
     display: block;
@@ -251,7 +251,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-top: 1px solid var(--line);
     min-height: 45px;
     flex-shrink: 0;

@@ -70,6 +70,26 @@ for (const colorScheme of ['dark', 'light'] as const) {
         expect(overflow).toBe(false);
         await page.getByRole('button', { name: 'Services for inventory-sync-api' }).click();
         await expect(page.getByRole('button', { name: 'Buggregator', exact: true })).toBeVisible();
+        const taskButtons = await Promise.all(
+            [
+                'Start all surfaces in inventory-sync',
+                'Restart all surfaces in inventory-sync',
+                'Stop all surfaces in inventory-sync',
+            ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
+        );
+        const surfaceButtons = await Promise.all(
+            [
+                'Restart inventory-sync-api',
+                'Stop inventory-sync-api',
+                'Services for inventory-sync-api',
+            ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
+        );
+        expect(surfaceButtons.map((box) => box?.x)).toEqual(taskButtons.map((box) => box?.x));
+        const searchBox = await page.getByRole('searchbox').boundingBox();
+        const surface = await page.locator('.surface-row').first().boundingBox();
+        const services = await page.locator('.service-menu').boundingBox();
+        expect({ x: surface?.x, width: surface?.width }).toEqual({ x: searchBox?.x, width: searchBox?.width });
+        expect({ x: services?.x, width: services?.width }).toEqual({ x: searchBox?.x, width: searchBox?.width });
         await page.getByRole('button', { name: 'Buggregator', exact: true }).click();
         expect(await page.evaluate(() => (window as any).requests.at(-1))).toMatchObject({
             type: 'action',
