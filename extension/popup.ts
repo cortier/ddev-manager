@@ -150,20 +150,6 @@ function render() {
             serviceButton.disabled = !!s.warning;
             row.append(serviceButton);
             section.append(row);
-            const status =
-                s.warning ||
-                (operation?.state === 'busy'
-                    ? operation.label
-                    : operation?.state === 'error'
-                      ? operation.message
-                      : s.status);
-            section.append(
-                text(
-                    'div',
-                    status || s.status,
-                    `surface-status ${s.warning || operation?.state === 'error' ? 'error' : ''}`,
-                ),
-            );
             if (menu === s.id) {
                 const list = text('div', '', 'service-menu');
                 const ide = document.createElement('button');

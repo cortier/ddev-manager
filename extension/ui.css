@@ -235,17 +235,6 @@ input::placeholder {
 .status-dot.paused {
     border-color: #d99a22;
 }
-.surface-status {
-    font-size: 10px;
-    color: var(--muted);
-    padding: 0 8px 3px 35px;
-}
-.surface-status.error {
-    color: var(--danger);
-    overflow-wrap: anywhere;
-    max-height: 76px;
-    overflow: auto;
-}
 .service-menu {
     padding: 5px 8px 8px;
     background: var(--soft);
