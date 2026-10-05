@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 const extensionID = "ddev-manager@cortier.com"
@@ -112,10 +114,10 @@ func absoluteExecutablePath(p, label string) (string, error) {
 	}
 	return p, nil
 }
-func ideExecutablePath(c Config, l Layout) (string, error) {
+func ideExecutablePath(c Config) (string, error) {
 	p := c.IDEPath
 	if p == "" {
-		p = environmentIDE(l)
+		p = environmentIDE()
 	}
 	if p == "" {
 		return "", errors.New("IDE executable is not configured; set it in extension Settings or $IDE")
@@ -123,15 +125,21 @@ func ideExecutablePath(c Config, l Layout) (string, error) {
 	return absoluteExecutablePath(p, "IDE executable")
 }
 
-func environmentIDE(l Layout) string {
+func environmentIDE() string {
 	if p := os.Getenv("IDE"); p != "" {
 		return p
 	}
-	b, e := os.ReadFile(filepath.Join(l.Data, "ide"))
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	output, e := exec.CommandContext(ctx, shell, "-lc", "printf '%s' \"$IDE\"").Output()
 	if e != nil {
 		return ""
 	}
-	return strings.TrimSpace(string(b))
+	return strings.TrimSpace(string(output))
 }
 func xmlEscape(v string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;").Replace(v)
@@ -238,9 +246,6 @@ func install(l Layout, source string, c Config, run SystemCommand) error {
 	}
 	// Capture the installer shell's PATH for DDEV custom host commands and helpers.
 	if e = writePrivate(filepath.Join(l.Data, "path"), []byte(os.Getenv("PATH"))); e != nil {
-		return e
-	}
-	if e = writePrivate(filepath.Join(l.Data, "ide"), []byte(os.Getenv("IDE"))); e != nil {
 		return e
 	}
 	manifest := map[string]any{"name": hostName, "description": "Cortier DDEV Manager", "path": l.Binary, "type": "stdio", "allowed_extensions": []string{extensionID}}

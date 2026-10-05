@@ -20,6 +20,17 @@ func TestUnsupportedLinuxService(t *testing.T) {
 		t.Fatal("Installer wrote files before preflight")
 	}
 }
+func TestEnvironmentIDEReadsLoginShellWithoutInstallerSnapshot(t *testing.T) {
+	shell := filepath.Join(t.TempDir(), "shell")
+	if e := os.WriteFile(shell, []byte("#!/bin/sh\nprintf '/shell/editor'"), 0700); e != nil {
+		t.Fatal(e)
+	}
+	t.Setenv("IDE", "")
+	t.Setenv("SHELL", shell)
+	if got := environmentIDE(); got != "/shell/editor" {
+		t.Fatalf("IDE from login shell = %q", got)
+	}
+}
 func TestInstallerLayouts(t *testing.T) {
 	for _, platform := range []string{"linux", "darwin"} {
 		t.Run(platform, func(t *testing.T) {
