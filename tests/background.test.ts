@@ -40,7 +40,7 @@ beforeEach(async () => {
                 calls.push(m);
                 queueMicrotask(() => {
                     let result: any = {};
-                    if (m.method === 'discover') result = surfaces;
+                    if (m.method === 'discover') result = structuredClone(surfaces);
                     if (m.method === 'register') result = { url: 'http://127.0.0.1:43111/uninstall#token' };
                     if (m.method === 'action') result = { url: 'https://api.test' };
                     nativeListener({
@@ -89,6 +89,18 @@ it('continues batches after failure and preserves results with no popup', async 
     await vi.waitFor(() => expect(published.at(-1)?.state.operations.app?.state).toBe('success'));
     expect(published.at(-1).state.operations.api.state).toBe('error');
     expect(calls.filter((c) => c.method === 'action').map((c) => c.surfaceId)).toEqual(['api', 'app']);
+});
+it('publishes the completed lifecycle status before discovery refreshes', async () => {
+    await listener({ type: 'action', ids: ['api'], action: 'stop' });
+    await vi.waitFor(() =>
+        expect(
+            published.some(
+                (message) =>
+                    message.state.operations.api?.state === 'success' &&
+                    message.state.surfaces.find((surface: any) => surface.id === 'api')?.status === 'stopped',
+            ),
+        ).toBe(true),
+    );
 });
 it('rejects duplicate in-flight actions', async () => {
     const a = listener({ type: 'action', ids: ['api'], action: 'restart' });

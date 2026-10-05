@@ -103,6 +103,12 @@ async function register() {
 function errorText(e: unknown) {
     return e instanceof Error ? e.message : String(e);
 }
+function applyCompletedStatus(id: string, action: string) {
+    const surface = state.surfaces.find((item) => item.id === id);
+    if (!surface) return;
+    if (action === 'stop') surface.status = 'stopped';
+    else if (['start', 'restart', 'open'].includes(action)) surface.status = 'running';
+}
 async function refresh() {
     if (refreshing) return refreshing;
     refreshing = (async () => {
@@ -159,6 +165,7 @@ function enqueue(ids: string[], action: string, serviceId?: string) {
                         if (!result.url) throw new Error('No URL returned.');
                         await browser.tabs.create({ url: safeURL(result.url) });
                     }
+                    applyCompletedStatus(id, action);
                     state.operations[id] = { surfaceId: id, label: 'Done', state: 'success' };
                 } catch (e) {
                     state.operations[id] = { surfaceId: id, label: 'Failed', state: 'error', message: errorText(e) };
