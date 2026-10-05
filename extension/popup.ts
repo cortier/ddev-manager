@@ -1,6 +1,7 @@
 import { groupTasks, filterTasks, type State, type Service } from './model';
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const search = $<HTMLInputElement>('search');
+const runningOnly = $<HTMLInputElement>('running-only');
 const tasks = $('tasks');
 let state: State | undefined;
 let menu: string | undefined;
@@ -64,7 +65,15 @@ function render() {
     const scroll = tasks.scrollTop;
     tasks.replaceChildren();
     const all = groupTasks(state.surfaces, state.settings.overrides);
-    const visible = filterTasks(all, search.value);
+    const statusFiltered = runningOnly.checked
+        ? all
+              .filter((task) => task.surfaces.some((surface) => surface.status === 'running'))
+              .map((task) => ({
+                  ...task,
+                  surfaces: task.surfaces.filter((surface) => surface.status === 'running'),
+              }))
+        : all;
+    const visible = filterTasks(statusFiltered, search.value);
     $('notice').textContent =
         state.error ||
         (!state.cleanupReady && state.connected
@@ -79,8 +88,8 @@ function render() {
                 'p',
                 state.loading
                     ? 'Finding DDEV projects…'
-                    : search.value
-                      ? 'No tasks match your search.'
+                    : search.value || runningOnly.checked
+                      ? 'No tasks match your filters.'
                       : state.connected
                         ? 'No registered DDEV projects. New projects will appear automatically.'
                         : 'Install the companion. Projects will appear automatically once connected.',
@@ -94,7 +103,7 @@ function render() {
         title.title = task.branch || task.name;
         heading.append(title);
         const actions = text('div', '', 'actions');
-        const ids = task.surfaces.map((s) => s.id);
+        const ids = all.find((item) => item.id === task.id)?.surfaces.map((surface) => surface.id) || [];
         const busy = ids.some((id) => state?.operations[id]?.state === 'busy');
         for (const kind of ['start', 'restart', 'stop']) {
             const label = `${kind[0].toUpperCase() + kind.slice(1)} all surfaces in ${task.name}`;
@@ -191,6 +200,10 @@ function render() {
             }
 }
 search.oninput = render;
+runningOnly.onchange = () => {
+    void browser.storage.local.set({ runningOnly: runningOnly.checked }).catch(error);
+    render();
+};
 $('settings').onclick = () => void browser.runtime.openOptionsPage();
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && menu) {
@@ -209,9 +222,9 @@ browser.runtime.onMessage.addListener((m: any) => {
         render();
     }
 });
-void browser.runtime
-    .sendMessage({ type: 'getState' })
-    .then((s) => {
+void Promise.all([browser.runtime.sendMessage({ type: 'getState' }), browser.storage.local.get('runningOnly')])
+    .then(([s, saved]) => {
+        runningOnly.checked = saved.runningOnly === true;
         state = s;
         render();
     })

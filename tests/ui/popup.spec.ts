@@ -40,6 +40,7 @@ test.beforeEach(async ({ page }) => {
                 cleanupReady: true,
             };
             (window as any).requests = [];
+            (window as any).storageWrites = [];
             (window as any).browser = {
                 runtime: {
                     onMessage: { addListener: () => {} },
@@ -67,7 +68,14 @@ test.beforeEach(async ({ page }) => {
                         (window as any).optionsOpened = true;
                     },
                 },
-                storage: { local: { get: async () => ({ settings: { overrides: {} } }) } },
+                storage: {
+                    local: {
+                        get: async () => ({ settings: { overrides: {} }, runningOnly: false }),
+                        set: async (value: any) => {
+                            (window as any).storageWrites.push(value);
+                        },
+                    },
+                },
             };
         },
         { surfaces },
@@ -126,7 +134,15 @@ test('search keeps siblings and no-match state is readable', async ({ page }) =>
     await expect(page.getByRole('button', { name: 'Open App, running' })).toBeVisible();
     await expect(page.getByRole('heading', { name: /a-very-long/ })).toHaveCount(0);
     await page.getByRole('searchbox').fill('unknown');
-    await expect(page.getByText('No tasks match your search.')).toBeVisible();
+    await expect(page.getByText('No tasks match your filters.')).toBeVisible();
+});
+test('running filter hides stopped surfaces and saves its selection', async ({ page }) => {
+    await page.goto('/popup.html');
+    const filter = page.getByRole('checkbox', { name: 'Only show running projects' });
+    await filter.check();
+    await expect(page.getByRole('heading', { name: /a-very-long/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Open API, running' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as any).storageWrites.at(-1))).toEqual({ runningOnly: true });
 });
 test('task commands carry all surfaces and keyboard focus is visible', async ({ page }) => {
     await page.goto('/popup.html');

@@ -130,6 +130,21 @@ h1 {
     display: block;
     margin-bottom: 8px;
 }
+.search-area .filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    color: var(--muted);
+    cursor: pointer;
+}
+.filter-option input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--accent);
+}
 input,
 textarea {
     width: 100%;
