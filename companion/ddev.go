@@ -24,6 +24,7 @@ import (
 type Config struct {
 	DdevPath string `json:"ddevPath"`
 	GitPath  string `json:"gitPath"`
+	IDEPath  string `json:"idePath,omitempty"`
 }
 type Surface struct {
 	ID         string `json:"id"`
@@ -52,6 +53,7 @@ type Manager struct {
 	config Config
 	layout Layout
 	run    Runner
+	launch Runner
 	mu     sync.Mutex
 }
 
@@ -69,6 +71,19 @@ func runCommand(ctx context.Context, dir, binary string, args ...string) ([]byte
 		return nil, fmt.Errorf("%s: %w: %s", filepath.Base(binary), err, strings.TrimSpace(stderr.String()))
 	}
 	return out.Bytes(), nil
+}
+
+func launchCommand(_ context.Context, dir, binary string, args ...string) ([]byte, error) {
+	cmd := exec.Command(binary, args...)
+	cmd.Dir = dir
+	cmd.Env = os.Environ()
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(binary), err)
+	}
+	if err := cmd.Process.Release(); err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(binary), err)
+	}
+	return nil, nil
 }
 
 type limitedBuffer struct{ bytes.Buffer }
@@ -341,6 +356,20 @@ func (m *Manager) action(ctx context.Context, id, action, service string) (any, 
 		p, e := m.project(ctx, id)
 		if e != nil {
 			return nil, e
+		}
+		if action == "ide" {
+			ide, e := ideExecutablePath(m.config)
+			if e != nil {
+				return nil, e
+			}
+			launch := m.launch
+			if launch == nil {
+				launch = m.run
+			}
+			if _, e = launch(ctx, p.Root, ide, p.Root); e != nil {
+				return nil, e
+			}
+			return map[string]bool{"ok": true}, nil
 		}
 		command := ""
 		switch action {

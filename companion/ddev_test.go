@@ -74,6 +74,44 @@ func TestStartBeforeOpen(t *testing.T) {
 		t.Fatal("Running start must be a no-op")
 	}
 }
+func TestOpenIDEUsesSettingBeforeEnvironment(t *testing.T) {
+	m, p, _ := fixtureManager(t)
+	bin := t.TempDir()
+	configured := filepath.Join(bin, "configured-ide")
+	fallback := filepath.Join(bin, "environment-ide")
+	os.WriteFile(configured, []byte("fixture"), 0700)
+	os.WriteFile(fallback, []byte("fixture"), 0700)
+	t.Setenv("IDE", fallback)
+	m.config.IDEPath = configured
+	var gotDir, gotBinary string
+	var gotArgs []string
+	original := m.run
+	m.run = func(ctx context.Context, dir, binary string, args ...string) ([]byte, error) {
+		if binary == configured || binary == fallback {
+			gotDir, gotBinary, gotArgs = dir, binary, args
+			return nil, nil
+		}
+		return original(ctx, dir, binary, args...)
+	}
+	if _, e := m.action(context.Background(), p.Name, "ide", ""); e != nil {
+		t.Fatal(e)
+	}
+	if gotBinary != configured || gotDir != p.Root || len(gotArgs) != 1 || gotArgs[0] != p.Root {
+		t.Fatalf("IDE invocation: dir=%q binary=%q args=%q", gotDir, gotBinary, gotArgs)
+	}
+	m.config.IDEPath = ""
+	if _, e := m.action(context.Background(), p.Name, "ide", ""); e != nil || gotBinary != fallback {
+		t.Fatalf("$IDE fallback: binary=%q error=%v", gotBinary, e)
+	}
+}
+
+func TestOpenIDERequiresConfiguredExecutable(t *testing.T) {
+	m, p, _ := fixtureManager(t)
+	t.Setenv("IDE", "")
+	if _, e := m.action(context.Background(), p.Name, "ide", ""); e == nil {
+		t.Fatal("Missing IDE configuration accepted")
+	}
+}
 func TestPausedRestartStarts(t *testing.T) {
 	m, p, calls := fixtureManager(t)
 	p.Status = "paused"

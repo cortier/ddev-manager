@@ -158,6 +158,12 @@ function render() {
             );
             if (menu === s.id) {
                 const list = text('div', '', 'service-menu');
+                const ide = document.createElement('button');
+                ide.textContent = 'Open in IDE';
+                ide.dataset.key = `${s.id}:ide`;
+                ide.disabled = running;
+                ide.onclick = () => void action([s.id], 'ide');
+                list.append(ide);
                 const items = menus.get(s.id);
                 if (!items) list.append(text('p', 'Finding services…'));
                 else if (typeof items === 'string') list.append(text('p', items));

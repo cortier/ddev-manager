@@ -100,6 +100,15 @@ it('registers a stable profile and opens through Firefox', async () => {
     await listener({ type: 'refresh' });
     expect(stored.profile.id).toBe(identity);
 });
+it('sends IDE actions through the native companion', async () => {
+    await listener({ type: 'action', ids: ['api'], action: 'ide' });
+    await vi.waitFor(() => {
+        expect(calls.some((call) => call.method === 'action' && call.action === 'ide')).toBe(true);
+        expect(published.at(-1)?.state.operations.api?.state).toBe('success');
+        expect(published.at(-1)?.state.loading).toBe(false);
+    });
+    expect(opened).toEqual([]);
+});
 it('eagerly loads one service template per surface type and reuses it', async () => {
     await vi.waitFor(() => expect(calls.filter((call) => call.method === 'services')).toHaveLength(2));
     const before = calls.length;

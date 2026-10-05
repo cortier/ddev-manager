@@ -46,6 +46,16 @@ test.beforeEach(async ({ page }) => {
                     sendMessage: async (m: any) => {
                         (window as any).requests.push(m);
                         if (m.type === 'getState') return state;
+                        if (m.type === 'diagnostics')
+                            return {
+                                platform: 'linux',
+                                cleanupReady: true,
+                                config: {
+                                    ddevPath: '/usr/bin/ddev',
+                                    gitPath: '/usr/bin/git',
+                                    idePath: '/usr/bin/code',
+                                },
+                            };
                         if (m.type === 'services')
                             return [
                                 { id: 'buggregator', name: 'Buggregator', url: 'https://api.test:8777' },
@@ -57,6 +67,7 @@ test.beforeEach(async ({ page }) => {
                         (window as any).optionsOpened = true;
                     },
                 },
+                storage: { local: { get: async () => ({ settings: { overrides: {} } }) } },
             };
         },
         { surfaces },
@@ -92,6 +103,12 @@ for (const colorScheme of ['dark', 'light'] as const) {
         const services = await page.locator('.service-menu').boundingBox();
         expect({ x: surface?.x, width: surface?.width }).toEqual({ x: searchBox?.x, width: searchBox?.width });
         expect({ x: services?.x, width: services?.width }).toEqual({ x: searchBox?.x, width: searchBox?.width });
+        await page.getByRole('button', { name: 'Open in IDE', exact: true }).click();
+        expect(await page.evaluate(() => (window as any).requests.at(-1))).toMatchObject({
+            type: 'action',
+            action: 'ide',
+            ids: ['inventory-sync-api'],
+        });
         await page.getByRole('button', { name: 'Buggregator', exact: true }).click();
         expect(await page.evaluate(() => (window as any).requests.at(-1))).toMatchObject({
             type: 'action',
@@ -127,4 +144,13 @@ test('settings cog opens the Firefox options page', async ({ page }) => {
     await expect(page.locator('footer').getByRole('button')).toHaveCount(0);
     await page.getByRole('button', { name: 'Settings' }).click();
     await expect.poll(() => page.evaluate(() => (window as any).optionsOpened)).toBe(true);
+});
+test('settings shows the effective IDE and saves an explicit override', async ({ page }) => {
+    await page.goto('/options.html');
+    await expect(page.getByLabel('IDE executable')).toHaveValue('/usr/bin/code');
+    await page.getByLabel('IDE executable').fill('/opt/idea/bin/idea');
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect
+        .poll(() => page.evaluate(() => (window as any).requests.findLast((m: any) => m.type === 'saveSettings')))
+        .toMatchObject({ settings: { idePath: '/opt/idea/bin/idea' } });
 });

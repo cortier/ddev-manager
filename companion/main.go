@@ -51,7 +51,11 @@ func dispatch(l Layout, r Request) (any, error) {
 			return nil, e
 		}
 		_, health := ipc(l, "GET", "/health", "")
-		result := map[string]any{"version": 1, "platform": l.OS, "config": c, "cleanupReady": health == nil}
+		effective := c
+		if effective.IDEPath == "" {
+			effective.IDEPath = os.Getenv("IDE")
+		}
+		result := map[string]any{"version": 1, "platform": l.OS, "config": effective, "cleanupReady": health == nil}
 		if health != nil {
 			result["cleanupError"] = health.Error()
 		}
@@ -67,13 +71,19 @@ func dispatch(l Layout, r Request) (any, error) {
 		if e != nil {
 			return nil, e
 		}
+		if c.IDEPath != "" {
+			c.IDEPath, e = absoluteExecutablePath(c.IDEPath, "IDE executable")
+			if e != nil {
+				return nil, e
+			}
+		}
 		return c, writeJSON(filepath.Join(l.Data, "config.json"), c)
 	}
 	c, e := readConfig(l)
 	if e != nil {
 		return nil, e
 	}
-	m := &Manager{config: c, layout: l, run: runCommand}
+	m := &Manager{config: c, layout: l, run: runCommand, launch: launchCommand}
 	duration := 45 * time.Second
 	if r.Method == "action" {
 		duration = 20 * time.Minute

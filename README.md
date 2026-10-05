@@ -102,9 +102,9 @@ Installation errors after files are copied are reported explicitly. Correct the 
 - Go cleanup service: loopback-only HTTP for removal and a permission-restricted Unix socket for authenticated profile registration. It never exposes DDEV actions over HTTP.
 - Cleanup helper: a separate transient systemd service / launchd job, so it survives stopping the cleanup service that launched it.
 
-Native messages are length-prefixed JSON with `version: 1`, a correlation `id`, and a `method`. Methods: `discover`, `services`, `action`, `register`, `diagnostics`, `configure`. Lifecycle actions: `start`, `restart`, `stop`, `open`. Service IDs are resolved on the companion; requests never supply arbitrary shell commands or launch URLs. Responses return `result` or `{error: {code, message}}`. Protocol mismatch and disconnected hosts are shown in the UI.
+Native messages are length-prefixed JSON with `version: 1`, a correlation `id`, and a `method`. Methods: `discover`, `services`, `action`, `register`, `diagnostics`, `configure`. Actions: `start`, `restart`, `stop`, `open`, and `ide`. Service IDs are resolved on the companion; requests never supply arbitrary shell commands or launch URLs. Responses return `result` or `{error: {code, message}}`. Protocol mismatch and disconnected hosts are shown in the UI.
 
-Executable settings only accept absolute executable paths with the expected `ddev`/`git` basename. Profile identifiers, authentication material, and installation configuration remain local. No telemetry, external uninstall callbacks, or container assignment.
+Executable settings only accept absolute executable paths; DDEV and Git also require their expected basename. The IDE setting takes precedence over `$IDE`, which is used only while the setting is empty. The companion passes the registered project directory as one argument without shell interpolation. Profile identifiers, authentication material, and installation configuration remain local. No telemetry, external uninstall callbacks, or container assignment.
 
 ## Validation and packaging
 

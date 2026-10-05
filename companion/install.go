@@ -99,6 +99,29 @@ func executablePath(p, name string) (string, error) {
 	}
 	return p, nil
 }
+func absoluteExecutablePath(p, label string) (string, error) {
+	if p == "" {
+		return "", fmt.Errorf("%s is not configured", label)
+	}
+	if !filepath.IsAbs(p) {
+		return "", fmt.Errorf("Expected an absolute path to %s", label)
+	}
+	s, e := os.Stat(p)
+	if e != nil || s.IsDir() || s.Mode()&0111 == 0 {
+		return "", fmt.Errorf("%s is not executable", p)
+	}
+	return p, nil
+}
+func ideExecutablePath(c Config) (string, error) {
+	p := c.IDEPath
+	if p == "" {
+		p = os.Getenv("IDE")
+	}
+	if p == "" {
+		return "", errors.New("IDE executable is not configured; set it in extension Settings or $IDE")
+	}
+	return absoluteExecutablePath(p, "IDE executable")
+}
 func xmlEscape(v string) string {
 	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;").Replace(v)
 }
@@ -170,6 +193,11 @@ func install(l Layout, source string, c Config, run SystemCommand) error {
 	c.GitPath, e = executablePath(c.GitPath, "git")
 	if e != nil {
 		return e
+	}
+	if c.IDEPath != "" {
+		if c.IDEPath, e = absoluteExecutablePath(c.IDEPath, "IDE executable"); e != nil {
+			return e
+		}
 	}
 	if e = os.MkdirAll(l.Data, 0700); e != nil {
 		return e

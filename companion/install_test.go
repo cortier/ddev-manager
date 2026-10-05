@@ -30,7 +30,7 @@ func TestInstallerLayouts(t *testing.T) {
 			}
 			calls := []string{}
 			run := func(s string, a ...string) error { calls = append(calls, s+" "+strings.Join(a, " ")); return nil }
-			c := Config{filepath.Join(bin, "ddev"), filepath.Join(bin, "git")}
+			c := Config{DdevPath: filepath.Join(bin, "ddev"), GitPath: filepath.Join(bin, "git")}
 			if e := install(l, filepath.Join(bin, "source"), c, run); e != nil {
 				t.Fatal(e)
 			}

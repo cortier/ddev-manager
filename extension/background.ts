@@ -187,7 +187,7 @@ async function refresh() {
     return refreshing;
 }
 function enqueue(ids: string[], action: string, serviceId?: string) {
-    if (!['start', 'restart', 'stop', 'open'].includes(action)) throw new Error('Unsupported action.');
+    if (!['start', 'restart', 'stop', 'open', 'ide'].includes(action)) throw new Error('Unsupported action.');
     const known = new Set(state.surfaces.map((s) => s.id));
     const unique = [...new Set(ids)];
     if (!unique.length || unique.some((id) => !known.has(id)))
@@ -199,13 +199,15 @@ function enqueue(ids: string[], action: string, serviceId?: string) {
             (state.operations[id] = {
                 surfaceId: id,
                 label:
-                    action === 'open'
-                        ? 'Opening…'
-                        : action === 'stop'
-                          ? 'Stopping…'
-                          : action === 'restart'
-                            ? 'Restarting…'
-                            : 'Starting…',
+                    action === 'ide'
+                        ? 'Opening IDE…'
+                        : action === 'open'
+                          ? 'Opening…'
+                          : action === 'stop'
+                            ? 'Stopping…'
+                            : action === 'restart'
+                              ? 'Restarting…'
+                              : 'Starting…',
                 state: 'busy',
             }),
     );
@@ -268,7 +270,11 @@ browser.runtime.onMessage.addListener((message: any) => {
                         throw new Error('Each override must contain product and/or surface text.');
                 }
                 await native('configure', {
-                    config: { ddevPath: settings.ddevPath || '', gitPath: settings.gitPath || '' },
+                    config: {
+                        ddevPath: settings.ddevPath || '',
+                        gitPath: settings.gitPath || '',
+                        idePath: settings.idePath || '',
+                    },
                 });
                 state.settings = settings;
                 await browser.storage.local.set({ settings });

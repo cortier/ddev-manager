@@ -29,7 +29,12 @@
             <label for="ddev">DDEV executable</label><input id="ddev" placeholder="/usr/local/bin/ddev" /><label
                 for="git"
                 >Git executable</label
-            ><input id="git" placeholder="/usr/bin/git" />
+            ><input id="git" placeholder="/usr/bin/git" /> <label for="ide">IDE executable</label
+            ><input id="ide" placeholder="Uses $IDE when empty" aria-describedby="ide-help" />
+            <p id="ide-help" class="muted">
+                When unset, the companion uses <code>$IDE</code>. Saving a value here takes precedence over the
+                environment variable.
+            </p>
             <h2>Project names</h2>
             <p>
                 Override inferred product or surface labels by DDEV project name. Task branches still group by their

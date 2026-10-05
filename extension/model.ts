@@ -22,6 +22,7 @@ export interface Settings {
     overrides: Record<string, Override>;
     ddevPath?: string;
     gitPath?: string;
+    idePath?: string;
 }
 export interface Task {
     id: string;

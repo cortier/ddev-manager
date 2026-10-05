@@ -6,6 +6,7 @@ async function check() {
             `Companion connected · ${d.platform}\nAutomatic removal: ${d.cleanupReady ? 'ready' : d.cleanupError || 'unavailable'}`;
         if (!el<HTMLInputElement>('ddev').value) el<HTMLInputElement>('ddev').value = d.config.ddevPath;
         if (!el<HTMLInputElement>('git').value) el<HTMLInputElement>('git').value = d.config.gitPath;
+        if (!el<HTMLInputElement>('ide').value) el<HTMLInputElement>('ide').value = d.config.idePath || '';
     } catch (e) {
         el('diagnostics').textContent =
             `Companion unavailable. Install it, or run ddev-manager doctor.\n${e instanceof Error ? e.message : String(e)}`;
@@ -22,6 +23,7 @@ el<HTMLFormElement>('form').onsubmit = async (e) => {
                 overrides,
                 ddevPath: el<HTMLInputElement>('ddev').value.trim(),
                 gitPath: el<HTMLInputElement>('git').value.trim(),
+                idePath: el<HTMLInputElement>('ide').value.trim(),
             },
         });
         el('result').textContent = 'Settings saved.';
