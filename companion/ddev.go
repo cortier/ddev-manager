@@ -228,7 +228,7 @@ func serviceURL(base string, port int) string {
 var browserServiceLabels = map[string]string{
 	"buggregator":  "Buggregator",
 	"storybook":    "Storybook",
-	"webhook-site": "webhook.site",
+	"webhook-site": "Webhook.site",
 }
 
 func browserServiceLabel(name string) (string, bool) {

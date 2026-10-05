@@ -142,6 +142,9 @@ func TestServiceDiscovery(t *testing.T) {
 	if services[1].Name != "Storybook" || services[1].URL != "https://example.test:6007" {
 		t.Fatal(services)
 	}
+	if services[2].Name != "Webhook.site" {
+		t.Fatal(services)
+	}
 	for _, service := range services {
 		if service.ID == "ministack" || service.ID == "reverb" || service.ID == "vite" {
 			t.Fatalf("Internal service exposed in browser menu: %+v", service)
