@@ -89,6 +89,10 @@ for (const colorScheme of ['dark', 'light'] as const) {
         await expect(page.getByRole('heading', { name: 'inventory-sync', exact: true })).toBeVisible();
         await expect(page.locator('body')).toHaveCSS('width', '360px');
         await expect(page.locator('.surface-status')).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Open API, running' })).toHaveAttribute(
+            'title',
+            'Open inventory-sync-api\n/projects/api',
+        );
         const overflow = await page.evaluate(() => document.body.scrollWidth > 360);
         expect(overflow).toBe(false);
         await page.getByRole('button', { name: 'Services for inventory-sync-api' }).click();

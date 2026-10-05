@@ -121,7 +121,7 @@ function render() {
             const open = document.createElement('button');
             open.className = 'surface-open';
             open.dataset.key = `${s.id}:open`;
-            open.title = `Open ${s.name} · ${s.status}\n${s.root}`;
+            open.title = `Open ${s.name}\n${s.root}`;
             open.setAttribute('aria-label', `Open ${s.label}, ${s.status}`);
             open.disabled = running || !!s.warning;
             const dot = text('span', '', `status-dot ${s.status}`);
