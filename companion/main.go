@@ -52,7 +52,7 @@ func dispatch(l Layout, r Request) (any, error) {
 		}
 		_, health := ipc(l, "GET", "/health", "")
 		effective := c
-		environmentIDE := os.Getenv("IDE")
+		environmentIDE := environmentIDE(l)
 		if effective.IDEPath == "" {
 			effective.IDEPath = environmentIDE
 		}

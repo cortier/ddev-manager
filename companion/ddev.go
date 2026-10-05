@@ -358,7 +358,7 @@ func (m *Manager) action(ctx context.Context, id, action, service string) (any, 
 			return nil, e
 		}
 		if action == "ide" {
-			ide, e := ideExecutablePath(m.config)
+			ide, e := ideExecutablePath(m.config, m.layout)
 			if e != nil {
 				return nil, e
 			}
