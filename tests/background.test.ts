@@ -7,6 +7,7 @@ let calls: any[];
 let opened: string[];
 let published: any[];
 let failSurface: string | undefined;
+let poll: () => void;
 const surfaces = [
     {
         id: 'api',
@@ -43,6 +44,10 @@ beforeEach(async () => {
     opened = [];
     published = [];
     failSurface = undefined;
+    vi.stubGlobal('setInterval', (callback: () => void) => {
+        poll = callback;
+        return 1;
+    });
     const runtime = {
         connectNative: () => ({
             postMessage: (m: any) => {
@@ -147,4 +152,14 @@ it('marks native disconnection and reconnects on refresh', async () => {
     expect(published.at(-1).state.connected).toBe(false);
     await listener({ type: 'refresh' });
     expect(published.at(-1).state.connected).toBe(true);
+});
+it('silently polls and publishes project changes', async () => {
+    const before = published.length;
+    surfaces[0].status = 'stopped';
+    poll();
+    await vi.waitFor(() =>
+        expect(published.slice(before).some((message) => message.state.surfaces[0].status === 'stopped')).toBe(true),
+    );
+    expect(published.slice(before).some((message) => message.state.loading)).toBe(false);
+    surfaces[0].status = 'running';
 });

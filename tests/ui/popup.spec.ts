@@ -77,6 +77,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
     test(`${colorScheme} popup layout and services`, async ({ page }) => {
         await page.emulateMedia({ colorScheme });
         await page.goto('/popup.html');
+        await expect(page.getByRole('button', { name: 'Refresh projects' })).toHaveCount(0);
         await expect(page.getByRole('heading', { name: 'inventory-sync', exact: true })).toBeVisible();
         await expect(page.locator('body')).toHaveCSS('width', '360px');
         const overflow = await page.evaluate(() => document.body.scrollWidth > 360);

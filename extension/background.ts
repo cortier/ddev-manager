@@ -21,6 +21,7 @@ const services = new Map<string, ServiceTemplate>();
 const serviceLoads = new Map<string, Promise<ServiceTemplate>>();
 let refreshing: Promise<void> | undefined;
 let registration: Promise<void> | undefined;
+let registered = false;
 let queue = Promise.resolve();
 const ready = browser.storage.local.get(['settings']).then((saved) => {
     if (saved.settings) state.settings = saved.settings;
@@ -45,6 +46,7 @@ function connect() {
             port?.error?.message || 'Companion disconnected. Install the companion or open Settings for diagnostics.';
         port = undefined;
         registration = undefined;
+        registered = false;
         state.connected = false;
         state.cleanupReady = false;
         state.cleanupError = message;
@@ -81,6 +83,7 @@ function secret() {
     return Array.from(crypto.getRandomValues(new Uint8Array(32)), (n) => n.toString(16).padStart(2, '0')).join('');
 }
 async function register() {
+    if (registered) return;
     if (registration) return registration;
     registration = (async () => {
         const saved = await browser.storage.local.get('profile');
@@ -91,11 +94,13 @@ async function register() {
         if (u.protocol !== 'http:' || u.hostname !== '127.0.0.1' || u.pathname !== '/uninstall')
             throw new Error('Invalid companion cleanup address.');
         await browser.runtime.setUninstallURL(u.href);
+        registered = true;
         state.cleanupReady = true;
         state.cleanupError = undefined;
     })()
         .catch((e) => {
             registration = undefined;
+            registered = false;
             state.cleanupReady = false;
             state.cleanupError = errorText(e);
         })
@@ -163,17 +168,25 @@ function warmServices() {
         void loadServices(surface).catch(() => {});
     }
 }
-async function refresh() {
+async function refresh(silent = false) {
     if (refreshing) return refreshing;
     refreshing = (async () => {
         await ready;
-        state.loading = true;
-        state.error = undefined;
-        publish();
+        const previousConnected = state.connected;
+        const previousError = state.error;
+        let changed = false;
+        if (!silent) {
+            state.loading = true;
+            state.error = undefined;
+            publish();
+        }
         try {
-            state.surfaces = await native<Surface[]>('discover');
+            const surfaces = await native<Surface[]>('discover');
+            changed = JSON.stringify(surfaces) !== JSON.stringify(state.surfaces);
+            state.surfaces = surfaces;
             state.connected = true;
-            state.updatedAt = Date.now();
+            state.error = undefined;
+            if (changed) state.updatedAt = Date.now();
             warmServices();
             await register();
         } catch (e) {
@@ -181,7 +194,7 @@ async function refresh() {
         } finally {
             state.loading = false;
             refreshing = undefined;
-            publish();
+            if (!silent || changed || previousConnected !== state.connected || previousError !== state.error) publish();
         }
     })();
     return refreshing;
@@ -241,7 +254,7 @@ browser.runtime.onMessage.addListener((message: any) => {
         await ready;
         switch (message.type) {
             case 'getState':
-                void refresh();
+                void refresh(true);
                 return state;
             case 'refresh':
                 await refresh();
@@ -286,4 +299,7 @@ browser.runtime.onMessage.addListener((message: any) => {
         }
     })();
 });
-void ready.then(refresh);
+void ready.then(async () => {
+    await refresh();
+    setInterval(() => void refresh(true), 5000);
+});

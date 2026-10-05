@@ -70,9 +70,8 @@ function render() {
         (!state.cleanupReady && state.connected
             ? 'Automatic removal is unavailable. Open Settings to check the cleanup service.'
             : '');
-    $<HTMLButtonElement>('refresh').disabled = state.loading;
     $('summary').textContent = state.loading
-        ? 'Refreshing…'
+        ? 'Finding projects…'
         : `${all.length} tasks · ${state.surfaces.length} surfaces`;
     if (!visible.length)
         tasks.append(
@@ -83,8 +82,8 @@ function render() {
                     : search.value
                       ? 'No tasks match your search.'
                       : state.connected
-                        ? 'No registered DDEV projects. Start a project with DDEV, then refresh.'
-                        : 'Install the companion, then refresh. Open Settings for setup help.',
+                        ? 'No registered DDEV projects. New projects will appear automatically.'
+                        : 'Install the companion. Projects will appear automatically once connected.',
                 'empty',
             ),
         );
@@ -192,10 +191,6 @@ function render() {
             }
 }
 search.oninput = render;
-$('refresh').onclick = () => {
-    menus.clear();
-    void browser.runtime.sendMessage({ type: 'refresh' }).catch(error);
-};
 $('settings').onclick = () => void browser.runtime.openOptionsPage();
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && menu) {
