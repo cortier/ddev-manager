@@ -72,11 +72,12 @@ export function groupTasks(surfaces: Surface[], overrides: Settings['overrides']
         const base = bases.has(s.branch);
         const id = !s.branch ? `project:${s.id}` : base ? `product:${product}` : `branch:${s.branch}`;
         const name = !s.branch ? s.name : base ? product : s.branch.replace(/^[^/]+\//, '');
-        const group = groups.get(id) || { id, name, branch: base ? '' : s.branch, surfaces: [] };
+        const group = groups.get(id) || { id, name, branch: s.branch, surfaces: [] };
         group.surfaces.push({ ...s, label });
         groups.set(id, group);
     }
     for (const task of groups.values()) {
+        task.branch = [...new Set(task.surfaces.map((surface) => surface.branch).filter(Boolean))].sort().join(' · ');
         const counts = new Map<string, number>();
         task.surfaces.forEach((s) => counts.set(s.label, (counts.get(s.label) || 0) + 1));
         task.surfaces.forEach((s) => {

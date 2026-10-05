@@ -32,6 +32,8 @@ describe('task discovery model', () => {
         ]);
         expect(tasks).toHaveLength(2);
         expect(tasks[0].surfaces).toHaveLength(2);
+        expect(tasks[0].branch).toBe('main · staging');
+        expect(tasks[1].branch).toBe('develop');
         expect(
             groupTasks([s('a', 'main', 'a-api')], { a: { product: 'Custom', surface: 'Backend' } })[0],
         ).toMatchObject({ name: 'Custom', surfaces: [{ label: 'Backend' }] });
