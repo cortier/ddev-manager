@@ -40,9 +40,9 @@ func fixtureManager(t *testing.T) (*Manager, *Project, *[]string) {
 			p.Status = "stopped"
 			return nil, nil
 		case "describe --json-output":
-			return envelope(map[string]any{"services": map[string]any{"web": map[string]any{"https_url": p.URL}, "buggregator": map[string]any{"https_url": "https://example.test:8777"}, "webhook-site": map[string]any{"https_url": "https://example.test:8084"}, "redis": map[string]any{}}}), nil
+			return envelope(map[string]any{"services": map[string]any{"web": map[string]any{"https_url": p.URL}, "buggregator": map[string]any{"https_url": "https://example.test:8777"}, "webhook-site": map[string]any{"https_url": "https://example.test:8084"}, "ministack": map[string]any{"https_url": "https://example.test:3900"}, "redis": map[string]any{}}}), nil
 		case "utility configyaml --full-yaml --omit-keys=web_environment":
-			return []byte("These files loaded\n# Complete processed project configuration:\nweb_extra_exposed_ports:\n  - name: storybook\n    https_port: 6007\n"), nil
+			return []byte("These files loaded\n# Complete processed project configuration:\nweb_extra_exposed_ports:\n  - name: storybook\n    https_port: 6007\n  - name: reverb\n    https_port: 8080\n  - name: vite\n    https_port: 5173\n"), nil
 		}
 		return nil, errors.New("unexpected command " + key)
 	}
@@ -141,6 +141,11 @@ func TestServiceDiscovery(t *testing.T) {
 	}
 	if services[1].Name != "Storybook" || services[1].URL != "https://example.test:6007" {
 		t.Fatal(services)
+	}
+	for _, service := range services {
+		if service.ID == "ministack" || service.ID == "reverb" || service.ID == "vite" {
+			t.Fatalf("Internal service exposed in browser menu: %+v", service)
+		}
 	}
 	_, e = m.action(context.Background(), p.Name, "open", "unknown")
 	if e == nil {

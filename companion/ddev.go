@@ -224,6 +224,18 @@ func serviceURL(base string, port int) string {
 	u.Fragment = ""
 	return u.String()
 }
+
+var browserServiceLabels = map[string]string{
+	"buggregator":  "Buggregator",
+	"storybook":    "Storybook",
+	"webhook-site": "webhook.site",
+}
+
+func browserServiceLabel(name string) (string, bool) {
+	label, ok := browserServiceLabels[strings.ToLower(name)]
+	return label, ok
+}
+
 func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 	b, e := m.ddev(ctx, p.Root, "describe", "--json-output")
 	if e != nil {
@@ -245,7 +257,8 @@ func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 	}
 	found := map[string]Service{}
 	for name, s := range detail.Services {
-		if name == "web" {
+		label, visible := browserServiceLabel(name)
+		if !visible {
 			continue
 		}
 		u := s.HTTPS
@@ -253,13 +266,6 @@ func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 			u = s.HTTP
 		}
 		if validURL(u) {
-			label := name
-			if name == "webhook-site" {
-				label = "webhook.site"
-			}
-			if name == "buggregator" {
-				label = "Buggregator"
-			}
 			found[name] = Service{ID: name, Name: label, URL: u, Status: s.Status}
 		}
 	}
@@ -279,6 +285,10 @@ func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 		}
 		if yaml.Unmarshal(config, &c) == nil {
 			for _, v := range c.Ports {
+				label, visible := browserServiceLabel(v.Name)
+				if !visible {
+					continue
+				}
 				port := v.HTTPS
 				scheme := "https"
 				if port == 0 {
@@ -291,10 +301,6 @@ func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 				}
 				parsed, _ := url.Parse(u)
 				parsed.Scheme = scheme
-				label := v.Name
-				if label == "storybook" {
-					label = "Storybook"
-				}
 				found[v.Name] = Service{ID: v.Name, Name: label, URL: parsed.String()}
 			}
 		}
