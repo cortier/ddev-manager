@@ -26,6 +26,15 @@ const surfaces = [
         status: 'running',
         url: 'https://app.test',
     },
+    {
+        id: 'api-two',
+        name: 'api-two',
+        branch: 'feat/other',
+        repository: 'other-api',
+        root: '/api-two',
+        status: 'running',
+        url: 'https://api-two.test',
+    },
 ];
 beforeEach(async () => {
     vi.resetModules();
@@ -42,6 +51,14 @@ beforeEach(async () => {
                     let result: any = {};
                     if (m.method === 'discover') result = structuredClone(surfaces);
                     if (m.method === 'register') result = { url: 'http://127.0.0.1:43111/uninstall#token' };
+                    if (m.method === 'services')
+                        result = [
+                            {
+                                id: 'buggregator',
+                                name: 'Buggregator',
+                                url: `https://${m.surfaceId}.test:8777`,
+                            },
+                        ];
                     if (m.method === 'action') result = { url: 'https://api.test' };
                     nativeListener({
                         version: 1,
@@ -82,6 +99,13 @@ it('registers a stable profile and opens through Firefox', async () => {
     await vi.waitFor(() => expect(opened).toEqual(['https://api.test/']));
     await listener({ type: 'refresh' });
     expect(stored.profile.id).toBe(identity);
+});
+it('eagerly loads one service template per surface type and reuses it', async () => {
+    await vi.waitFor(() => expect(calls.filter((call) => call.method === 'services')).toHaveLength(2));
+    const before = calls.length;
+    const result = await listener({ type: 'services', id: 'api-two' });
+    expect(calls).toHaveLength(before);
+    expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator', url: 'https://api-two.test:8777/' }]);
 });
 it('continues batches after failure and preserves results with no popup', async () => {
     failSurface = 'api';

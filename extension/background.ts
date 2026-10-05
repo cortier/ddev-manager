@@ -1,4 +1,4 @@
-import { safeURL, type State, type Surface, type Service, type Settings } from './model';
+import { safeURL, surfaceType, type State, type Surface, type Service, type Settings } from './model';
 const HOST = 'com.cortier.ddev_manager';
 let state: State = {
     surfaces: [],
@@ -13,7 +13,12 @@ const pending = new Map<
     string,
     { resolve: (v: any) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }
 >();
-const services = new Map<string, Service[]>();
+interface ServiceTemplate {
+    source: Surface;
+    services: Service[];
+}
+const services = new Map<string, ServiceTemplate>();
+const serviceLoads = new Map<string, Promise<ServiceTemplate>>();
 let refreshing: Promise<void> | undefined;
 let registration: Promise<void> | undefined;
 let queue = Promise.resolve();
@@ -109,6 +114,55 @@ function applyCompletedStatus(id: string, action: string) {
     if (action === 'stop') surface.status = 'stopped';
     else if (['start', 'restart', 'open'].includes(action)) surface.status = 'running';
 }
+function serviceKey(surface: Surface) {
+    return surfaceType(surface, state.settings.overrides).trim().toLocaleLowerCase();
+}
+function loadServices(surface: Surface) {
+    const key = serviceKey(surface);
+    const cached = services.get(key);
+    if (cached) return Promise.resolve(cached);
+    const existing = serviceLoads.get(key);
+    if (existing) return existing;
+    const loading = native<Service[]>('services', { surfaceId: surface.id })
+        .then((items) => {
+            const template = { source: surface, services: items };
+            services.set(key, template);
+            return template;
+        })
+        .finally(() => serviceLoads.delete(key));
+    serviceLoads.set(key, loading);
+    return loading;
+}
+function servicesFor(template: ServiceTemplate, surface: Surface) {
+    let source: URL;
+    let target: URL;
+    try {
+        source = new URL(template.source.url);
+        target = new URL(surface.url);
+    } catch {
+        return template.services;
+    }
+    return template.services.map((service) => {
+        try {
+            const url = new URL(service.url);
+            if (url.hostname === source.hostname) url.hostname = target.hostname;
+            else if (url.hostname.endsWith(`.${source.hostname}`))
+                url.hostname = `${url.hostname.slice(0, -source.hostname.length)}${target.hostname}`;
+            return { ...service, url: url.href };
+        } catch {
+            return service;
+        }
+    });
+}
+function warmServices() {
+    const types = new Set<string>();
+    for (const surface of state.surfaces) {
+        const key = serviceKey(surface);
+        if (surface.warning || types.has(key) || services.has(key)) continue;
+        types.add(key);
+        void loadServices(surface).catch(() => {});
+    }
+}
 async function refresh() {
     if (refreshing) return refreshing;
     refreshing = (async () => {
@@ -120,7 +174,7 @@ async function refresh() {
             state.surfaces = await native<Surface[]>('discover');
             state.connected = true;
             state.updatedAt = Date.now();
-            services.clear();
+            warmServices();
             await register();
         } catch (e) {
             state.error = errorText(e);
@@ -193,10 +247,11 @@ browser.runtime.onMessage.addListener((message: any) => {
             case 'action':
                 enqueue(message.ids, message.action, message.serviceId);
                 return { ok: true };
-            case 'services':
-                if (!services.has(message.id))
-                    services.set(message.id, await native<Service[]>('services', { surfaceId: message.id }));
-                return services.get(message.id);
+            case 'services': {
+                const surface = state.surfaces.find((item) => item.id === message.id);
+                if (!surface) throw new Error('Refresh the task list before retrying.');
+                return servicesFor(await loadServices(surface), surface);
+            }
             case 'diagnostics':
                 return native('diagnostics');
             case 'saveSettings': {

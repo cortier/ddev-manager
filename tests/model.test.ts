@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { groupTasks, filterTasks, safeURL, type Surface } from '../extension/model';
+import { groupTasks, filterTasks, safeURL, surfaceType, type Surface } from '../extension/model';
 const s = (name: string, branch: string, repository: string, status = 'stopped'): Surface => ({
     id: name,
     name,
@@ -35,6 +35,11 @@ describe('task discovery model', () => {
         expect(
             groupTasks([s('a', 'main', 'a-api')], { a: { product: 'Custom', surface: 'Backend' } })[0],
         ).toMatchObject({ name: 'Custom', surfaces: [{ label: 'Backend' }] });
+    });
+    it('infers stable surface types and respects naming overrides', () => {
+        expect(surfaceType(s('one', 'main', 'product-laravel'))).toBe('API');
+        expect(surfaceType(s('two', 'main', 'product-app'))).toBe('App');
+        expect(surfaceType(s('two', 'main', 'product-app'), { two: { surface: 'Frontend' } })).toBe('Frontend');
     });
     it('retains detached and missing projects individually', () => {
         expect(

@@ -48,6 +48,18 @@ export interface State {
 }
 const bases = new Set(['main', 'master', 'develop', 'development', 'staging']);
 const suffixes = /-(api|app|angular|admin|shop|docs|checklist|laravel)$/i;
+export function surfaceType(surface: Surface, overrides: Settings['overrides'] = {}) {
+    const repository = surface.repository || surface.name;
+    const suffix = repository.match(suffixes)?.[1]?.toLowerCase();
+    return (
+        overrides[surface.id]?.surface?.trim() ||
+        (suffix === 'laravel' || suffix === 'api'
+            ? 'API'
+            : suffix
+              ? suffix[0].toUpperCase() + suffix.slice(1)
+              : surface.name)
+    );
+}
 export function groupTasks(surfaces: Surface[], overrides: Settings['overrides'] = {}): Task[] {
     const groups = new Map<string, Task>();
     for (const s of surfaces) {
@@ -55,15 +67,7 @@ export function groupTasks(surfaces: Surface[], overrides: Settings['overrides']
         const suffix = repo.match(suffixes)?.[1]?.toLowerCase();
         const override = overrides[s.id] || {};
         const product = override.product?.trim() || repo.replace(suffixes, '');
-        const label =
-            override.surface?.trim() ||
-            (suffix === 'laravel'
-                ? 'API'
-                : suffix === 'api'
-                  ? 'API'
-                  : suffix
-                    ? suffix[0].toUpperCase() + suffix.slice(1)
-                    : s.name);
+        const label = surfaceType(s, overrides);
         const base = bases.has(s.branch);
         const id = !s.branch ? `project:${s.id}` : base ? `product:${product}` : `branch:${s.branch}`;
         const name = !s.branch ? s.name : base ? product : s.branch.replace(/^[^/]+\//, '');
