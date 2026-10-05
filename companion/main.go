@@ -52,10 +52,17 @@ func dispatch(l Layout, r Request) (any, error) {
 		}
 		_, health := ipc(l, "GET", "/health", "")
 		effective := c
+		environmentIDE := os.Getenv("IDE")
 		if effective.IDEPath == "" {
-			effective.IDEPath = os.Getenv("IDE")
+			effective.IDEPath = environmentIDE
 		}
-		result := map[string]any{"version": 1, "platform": l.OS, "config": effective, "cleanupReady": health == nil}
+		result := map[string]any{
+			"version":        1,
+			"platform":       l.OS,
+			"config":         effective,
+			"environmentIDE": environmentIDE,
+			"cleanupReady":   health == nil,
+		}
 		if health != nil {
 			result["cleanupError"] = health.Error()
 		}

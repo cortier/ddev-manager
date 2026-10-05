@@ -6,7 +6,8 @@ async function check() {
             `Companion connected · ${d.platform}\nAutomatic removal: ${d.cleanupReady ? 'ready' : d.cleanupError || 'unavailable'}`;
         if (!el<HTMLInputElement>('ddev').value) el<HTMLInputElement>('ddev').value = d.config.ddevPath;
         if (!el<HTMLInputElement>('git').value) el<HTMLInputElement>('git').value = d.config.gitPath;
-        if (!el<HTMLInputElement>('ide').value) el<HTMLInputElement>('ide').value = d.config.idePath || '';
+        if (!el<HTMLInputElement>('ide').value)
+            el<HTMLInputElement>('ide').value = d.config.idePath || d.environmentIDE || '';
     } catch (e) {
         el('diagnostics').textContent =
             `Companion unavailable. Install it, or run ddev-manager doctor.\n${e instanceof Error ? e.message : String(e)}`;

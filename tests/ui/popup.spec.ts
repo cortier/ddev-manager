@@ -155,3 +155,19 @@ test('settings shows the effective IDE and saves an explicit override', async ({
         .poll(() => page.evaluate(() => (window as any).requests.findLast((m: any) => m.type === 'saveSettings')))
         .toMatchObject({ settings: { idePath: '/opt/idea/bin/idea' } });
 });
+test('settings prefills IDE from the environment when no path is configured', async ({ page }) => {
+    await page.addInitScript(() => {
+        const original = (window as any).browser.runtime.sendMessage;
+        (window as any).browser.runtime.sendMessage = async (m: any) =>
+            m.type === 'diagnostics'
+                ? {
+                      platform: 'linux',
+                      cleanupReady: true,
+                      config: { ddevPath: '/usr/bin/ddev', gitPath: '/usr/bin/git' },
+                      environmentIDE: '/usr/local/bin/code',
+                  }
+                : original(m);
+    });
+    await page.goto('/options.html');
+    await expect(page.getByLabel('IDE executable')).toHaveValue('/usr/local/bin/code');
+});
