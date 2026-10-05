@@ -92,6 +92,16 @@ for (const colorScheme of ['dark', 'light'] as const) {
         expect(overflow).toBe(false);
         await page.getByRole('button', { name: 'Services for inventory-sync-api' }).click();
         await expect(page.getByRole('button', { name: 'Buggregator', exact: true })).toBeVisible();
+        await expect(page.getByRole('separator')).toBeVisible();
+        const ideBottom = await page
+            .getByRole('button', { name: 'Open in IDE', exact: true })
+            .evaluate((element) => element.getBoundingClientRect().bottom);
+        const dividerTop = await page.getByRole('separator').evaluate((element) => element.getBoundingClientRect().top);
+        const serviceTop = await page
+            .getByRole('button', { name: 'Buggregator', exact: true })
+            .evaluate((element) => element.getBoundingClientRect().top);
+        expect(ideBottom).toBeLessThan(dividerTop);
+        expect(dividerTop).toBeLessThan(serviceTop);
         const taskButtons = await Promise.all(
             [
                 'Start all surfaces in inventory-sync',

@@ -259,6 +259,12 @@ input::placeholder {
     width: 100%;
     overflow-wrap: anywhere;
 }
+.service-divider {
+    height: 0;
+    margin: 4px 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
 .service-menu p {
     color: var(--muted);
     font-size: 12px;

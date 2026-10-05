@@ -172,6 +172,9 @@ function render() {
                 ide.disabled = running;
                 ide.onclick = () => void action([s.id], 'ide');
                 list.append(ide);
+                const divider = document.createElement('hr');
+                divider.className = 'service-divider';
+                list.append(divider);
                 const items = menus.get(s.id);
                 if (!items) list.append(text('p', 'Finding services…'));
                 else if (typeof items === 'string') list.append(text('p', items));
