@@ -119,6 +119,10 @@ h1 {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+#settings svg {
+    width: 19px;
+    height: 19px;
+}
 .search-area {
     padding: 16px 16px 10px;
 }
