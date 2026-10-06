@@ -8,7 +8,7 @@
         "check": "tsc --noEmit",
         "test": "vitest run",
         "test:ui": "playwright test",
-        "lint:extension": "web-ext lint --source-dir dist/extension --warnings-as-errors",
+        "lint:extension": "web-ext lint --source-dir dist/extension --self-hosted --warnings-as-errors",
         "package": "npm run build && node scripts/package.mjs"
     },
     "devDependencies": {

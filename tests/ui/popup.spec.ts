@@ -115,11 +115,9 @@ for (const colorScheme of ['dark', 'light'] as const) {
             ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
         );
         const surfaceButtons = await Promise.all(
-            [
-                'Restart inventory-sync-api',
-                'Stop inventory-sync-api',
-                'Services for inventory-sync-api',
-            ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
+            ['Restart inventory-sync-api', 'Stop inventory-sync-api', 'Services for inventory-sync-api'].map((name) =>
+                page.getByRole('button', { name, exact: true }).boundingBox(),
+            ),
         );
         expect(surfaceButtons.map((box) => box?.x)).toEqual(taskButtons.map((box) => box?.x));
         const searchBox = await page.getByRole('searchbox').boundingBox();

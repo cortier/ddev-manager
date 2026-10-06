@@ -1,4 +1,4 @@
-module github.com/cortier/ddev-extension/companion
+module github.com/cortier/ddev-manager/companion
 
 go 1.24.0
 

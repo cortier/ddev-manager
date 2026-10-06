@@ -1,0 +1,125 @@
+name: Deploy release
+
+on:
+    workflow_dispatch:
+        inputs:
+            version_type:
+                description: Semantic version increment
+                required: true
+                default: patch
+                type: choice
+                options: [patch, minor, major]
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+jobs:
+    release:
+        if: github.ref == 'refs/heads/main'
+        environment: release
+        runs-on: ubuntu-24.04
+        timeout-minutes: 360
+        steps:
+            - uses: actions/checkout@v7.0.1
+              with:
+                  fetch-depth: 0
+            - uses: actions/setup-node@v7.0.0
+              with:
+                  node-version: '24'
+                  cache: npm
+            - uses: actions/setup-go@v7.0.0
+              with:
+                  go-version-file: companion/go.mod
+                  cache-dependency-path: companion/go.sum
+            - run: npm ci
+            - name: Configure release commit
+              run: |
+                  git config user.name github-actions[bot]
+                  git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            - name: Bump version
+              id: version
+              run: |
+                  version=$(node scripts/bump-version.mjs '${{ inputs.version_type }}' | tail -n 1)
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+            - name: Validate extension
+              run: |
+                  npm run check
+                  npm test
+                  npm run package
+                  npm run lint:extension
+                  npx playwright install --with-deps firefox
+                  npm run test:ui
+            - name: Test companion
+              working-directory: companion
+              run: |
+                  go test -race ./...
+                  go vet ./...
+            - name: Build companion packages
+              run: scripts/package-companion.sh
+            - name: Commit release source
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  git add extension/manifest.json package.json package-lock.json
+                  git commit -m "release: prepare DDEV Manager $VERSION"
+                  git archive --format=zip --output="dist/ddev-manager-$VERSION-source.zip" HEAD
+            - name: Submit to Mozilla and wait for approval
+              env:
+                  AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+                  AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  mkdir -p dist/signed
+                  npx web-ext sign \
+                    --source-dir dist/extension \
+                    --artifacts-dir dist/signed \
+                    --channel unlisted \
+                    --api-key "$AMO_JWT_ISSUER" \
+                    --api-secret "$AMO_JWT_SECRET" \
+                    --upload-source-code "dist/ddev-manager-$VERSION-source.zip" \
+                    --approval-timeout 18000000 \
+                    --timeout 600000 \
+                    --no-input
+                  signed=$(find dist/signed -maxdepth 1 -type f -name '*.xpi' -print -quit)
+                  test -n "$signed"
+                  mv "$signed" "dist/ddev-manager-$VERSION.xpi"
+                  unzip -t "dist/ddev-manager-$VERSION.xpi" >/dev/null
+                  unzip -l "dist/ddev-manager-$VERSION.xpi" | grep -q 'META-INF/mozilla.rsa'
+                  test "$(unzip -p "dist/ddev-manager-$VERSION.xpi" manifest.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).version))")" = "$VERSION"
+            - name: Push version and tag
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  test "$(git rev-parse origin/main)" = "$(git rev-parse HEAD^)"
+                  git tag -a "v$VERSION" -m "DDEV Manager $VERSION"
+                  git push origin HEAD:main "v$VERSION"
+            - name: Create GitHub release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  VERSION: ${{ steps.version.outputs.version }}
+              run: |
+                  gh release create "v$VERSION" \
+                    "dist/ddev-manager-$VERSION.xpi#ddev-manager-$VERSION.xpi" \
+                    "dist/ddev-manager-$VERSION-source.zip#ddev-manager-$VERSION-source.zip" \
+                    dist/ddev-manager-linux-amd64.tar.gz \
+                    dist/ddev-manager-linux-arm64.tar.gz \
+                    dist/ddev-manager-darwin-amd64.tar.gz \
+                    dist/ddev-manager-darwin-arm64.tar.gz \
+                    --title "DDEV Manager $VERSION" \
+                    --generate-notes \
+                    --verify-tag
+            - name: Publish Firefox update metadata
+              env:
+                  VERSION: ${{ steps.version.outputs.version }}
+                  REPOSITORY: ${{ github.repository }}
+              run: |
+                  sha=$(sha256sum "dist/ddev-manager-$VERSION.xpi" | cut -d ' ' -f 1)
+                  url="https://github.com/$REPOSITORY/releases/download/v$VERSION/ddev-manager-$VERSION.xpi"
+                  node scripts/write-update-manifest.mjs "$VERSION" "$url" "$sha"
+                  git add docs/updates.json
+                  git commit -m "chore: publish update feed for v$VERSION"
+                  git push origin HEAD:main

@@ -2,6 +2,8 @@
 
 A Firefox toolbar extension that groups DDEV projects by task, opens their surfaces and services, and starts, restarts, or stops individual surfaces or entire tasks.
 
+This is an independent community project maintained by Cortier. It is not affiliated with or endorsed by the DDEV Foundation. DDEV and its logo are trademarks of their respective owners.
+
 The popup follows Firefox Multi-Account Containers’ compact, native-looking presentation, with custom components, light/dark themes, task search, status indicators, and keyboard-accessible controls. No Mozilla source or assets are bundled.
 
 ## Requirements
@@ -31,7 +33,7 @@ The extension and companion are installed separately. The companion runs DDEV co
 3. Install the **Mozilla-signed** extension `.xpi` using Firefox → Add-ons and themes → gear menu → Install Add-on From File.
 4. Open DDEV Manager. It discovers registered projects automatically. Settings → Check connection reports companion and cleanup-service availability.
 
-The repository’s packaged ZIP is **unsigned**. It is suitable for temporary developer loading, not permanent installation in normal Firefox. A publisher must sign it with Mozilla before distributing a permanent installation. This repository is private, so downloads hosted here require repository access.
+The repository’s packaged ZIP is **unsigned**. It is suitable for temporary developer loading, not permanent installation in normal Firefox. Install permanent builds from the Mozilla-signed XPI attached to a GitHub release.
 
 Install the companion once per OS user. Each Firefox profile registers independently. Re-running the installer upgrades the binary without changing profile registrations or their uninstall URLs. Run the installer from your usual development shell: it captures that shell’s PATH for DDEV custom commands. Re-run it after changing the toolchain location.
 
@@ -130,7 +132,11 @@ Unit tests cover grouping, lifecycle behavior, services, URL handling, serializa
 
 ### Signing
 
-The publisher needs a Mozilla Add-ons account and API credentials. For an unlisted distribution, set `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` in a secure environment and run:
+Firefox checks `https://cortier.github.io/ddev-manager/updates.json` for releases newer than the installed version. The feed always points to a Mozilla-signed XPI in GitHub Releases. The native companion is updated separately by running the installer from the new release.
+
+Maintainers publish with the **Deploy release** GitHub Action. Select `patch`, `minor`, or `major`; the workflow bumps both manifests, validates the extension and companion, submits source and extension archives to Mozilla’s unlisted channel, waits for approval, creates the tag and GitHub release, and publishes the update feed. The `release` environment stores `AMO_JWT_ISSUER` and `AMO_JWT_SECRET`; pull requests never receive those credentials.
+
+For local signing diagnostics, a publisher can run:
 
 ```sh
 npx web-ext sign --source-dir dist/extension --channel unlisted \
@@ -138,6 +144,6 @@ npx web-ext sign --source-dir dist/extension --channel unlisted \
   --artifacts-dir dist/signed
 ```
 
-Provide the complete source and build instructions if Mozilla requests them. Credentials must never be committed. The initial private distribution uses manual signed-extension updates; no authenticated private update feed is configured. Companion updates use the same installer.
+Credentials must never be committed. Only signed XPIs belong in public releases.
 
 References: [Firefox native messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging), [uninstall URLs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/setUninstallURL), [Mozilla signing](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/), [visual reference](https://github.com/mozilla/multi-account-containers/).

@@ -2,6 +2,7 @@
 Run after installing a fresh companion. It removes that companion, never DDEV projects.
 """
 import json
+import os
 import pathlib
 import secrets
 import struct
@@ -28,7 +29,8 @@ def native(method, **params):
 projects = native("discover")
 assert len(projects) > 0
 print("Native protocol discovery:", len(projects), "projects")
-for surface, expected in [("inventory-sync-api", ["buggregator", "webhook-site"]), ("inventory-sync-app", ["storybook"])]:
+service_checks = json.loads(os.environ.get("DDEV_MANAGER_SMOKE_SERVICES", "{}"))
+for surface, expected in service_checks.items():
     links = native("services", surfaceId=surface)
     assert all(name in [link["id"] for link in links] for name in expected), links
     print(surface + " services:", ", ".join(link["name"] for link in links))
