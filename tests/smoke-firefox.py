@@ -28,7 +28,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
 threading.Thread(target=server.serve_forever, daemon=True).start()
-with tempfile.TemporaryDirectory(prefix="ddev-extension-firefox-") as directory:
+with tempfile.TemporaryDirectory(prefix="ddev-manager-firefox-") as directory:
     directory = pathlib.Path(directory)
     extension = directory / "extension"
     shutil.copytree(repo / "dist/extension", extension)
