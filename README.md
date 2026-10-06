@@ -132,7 +132,7 @@ Unit tests cover grouping, lifecycle behavior, services, URL handling, serializa
 
 ### Signing
 
-Firefox checks the repository's public [`updates.json`](https://raw.githubusercontent.com/cortier/ddev-manager/main/docs/updates.json) for releases newer than the installed version. The feed always points to a Mozilla-signed XPI in GitHub Releases. The native companion is updated separately by running the installer from the new release.
+Firefox checks the latest GitHub release's `updates.json` asset for versions newer than the installed extension. The feed points to the Mozilla-signed XPI in that same release. The native companion is updated separately by running the installer from the new release.
 
 Maintainers publish with the **Deploy release** GitHub Action. Select `patch`, `minor`, or `major`; the workflow bumps both manifests, validates the extension and companion, submits source and extension archives to Mozilla’s unlisted channel, waits for approval, creates the tag and GitHub release, and publishes the update feed. The `release` environment stores `AMO_JWT_ISSUER` and `AMO_JWT_SECRET`; pull requests never receive those credentials.
 

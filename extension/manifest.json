@@ -6,7 +6,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "ddev-manager@cortier.com",
-            "update_url": "https://raw.githubusercontent.com/cortier/ddev-manager/main/docs/updates.json",
+            "update_url": "https://github.com/cortier/ddev-manager/releases/latest/download/updates.json",
             "strict_min_version": "142.0",
             "data_collection_permissions": {
                 "required": ["none"]

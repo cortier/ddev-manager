@@ -94,7 +94,12 @@ jobs:
               env:
                   VERSION: ${{ steps.version.outputs.version }}
               run: |
-                  test "$(git rev-parse origin/main)" = "$(git rev-parse HEAD^)"
+                  sha=$(sha256sum "dist/ddev-manager-$VERSION.xpi" | cut -d ' ' -f 1)
+                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION/ddev-manager-$VERSION.xpi"
+                  node scripts/write-update-manifest.mjs "$VERSION" "$url" "$sha"
+                  git add docs/updates.json
+                  git commit -m "chore: publish update feed for v$VERSION"
+                  test "$(git rev-parse origin/main)" = "$(git rev-parse HEAD~2)"
                   git tag -a "v$VERSION" -m "DDEV Manager $VERSION"
                   git push origin HEAD:main "v$VERSION"
             - name: Create GitHub release
@@ -105,6 +110,7 @@ jobs:
                   gh release create "v$VERSION" \
                     "dist/ddev-manager-$VERSION.xpi#ddev-manager-$VERSION.xpi" \
                     "dist/ddev-manager-$VERSION-source.zip#ddev-manager-$VERSION-source.zip" \
+                    "docs/updates.json#updates.json" \
                     dist/ddev-manager-linux-amd64.tar.gz \
                     dist/ddev-manager-linux-arm64.tar.gz \
                     dist/ddev-manager-darwin-amd64.tar.gz \
@@ -112,14 +118,3 @@ jobs:
                     --title "DDEV Manager $VERSION" \
                     --generate-notes \
                     --verify-tag
-            - name: Publish Firefox update metadata
-              env:
-                  VERSION: ${{ steps.version.outputs.version }}
-                  REPOSITORY: ${{ github.repository }}
-              run: |
-                  sha=$(sha256sum "dist/ddev-manager-$VERSION.xpi" | cut -d ' ' -f 1)
-                  url="https://github.com/$REPOSITORY/releases/download/v$VERSION/ddev-manager-$VERSION.xpi"
-                  node scripts/write-update-manifest.mjs "$VERSION" "$url" "$sha"
-                  git add docs/updates.json
-                  git commit -m "chore: publish update feed for v$VERSION"
-                  git push origin HEAD:main
