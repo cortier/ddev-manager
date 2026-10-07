@@ -121,6 +121,34 @@ it('eagerly loads one service template per surface type and reuses it', async ()
     expect(calls).toHaveLength(before);
     expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator', url: 'https://api-two.test:8777/' }]);
 });
+it('opens a cached service URL immediately for a running surface', async () => {
+    const actionCalls = calls.filter((call) => call.method === 'action').length;
+    await listener({
+        type: 'action',
+        ids: ['api'],
+        action: 'open',
+        serviceId: 'buggregator',
+        serviceUrl: 'https://api.test:8777/',
+    });
+    expect(opened).toEqual(['https://api.test:8777/']);
+    expect(calls.filter((call) => call.method === 'action')).toHaveLength(actionCalls);
+});
+it('starts a stopped surface before opening its service', async () => {
+    surfaces[0].status = 'stopped';
+    await listener({ type: 'refresh' });
+    await listener({
+        type: 'action',
+        ids: ['api'],
+        action: 'open',
+        serviceId: 'buggregator',
+        serviceUrl: 'https://api.test:8777/',
+    });
+    await vi.waitFor(() =>
+        expect(calls.some((call) => call.method === 'action' && call.serviceId === 'buggregator')).toBe(true),
+    );
+    surfaces[0].status = 'running';
+    await listener({ type: 'refresh' });
+});
 it('continues batches after failure and preserves results with no popup', async () => {
     failSurface = 'api';
     await listener({ type: 'action', ids: ['api', 'app'], action: 'stop' });

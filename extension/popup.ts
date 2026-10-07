@@ -40,17 +40,17 @@ function text(tag: string, value: string, className = '') {
 function error(e: unknown) {
     $('notice').textContent = e instanceof Error ? e.message : String(e);
 }
-async function action(ids: string[], kind: string, serviceId?: string) {
+async function action(ids: string[], kind: string, serviceId?: string, serviceUrl?: string) {
     try {
-        await browser.runtime.sendMessage({ type: 'action', ids, action: kind, serviceId });
+        await browser.runtime.sendMessage({ type: 'action', ids, action: kind, serviceId, serviceUrl });
     } catch (e) {
         error(e);
     }
 }
-function selectMenuAction(ids: string[], kind: string, serviceId?: string) {
+function selectMenuAction(ids: string[], kind: string, serviceId?: string, serviceUrl?: string) {
     menu = undefined;
     render();
-    void action(ids, kind, serviceId);
+    void action(ids, kind, serviceId, serviceUrl);
 }
 async function toggleServices(id: string) {
     menu = menu === id ? undefined : id;
@@ -177,7 +177,7 @@ function render() {
                         b.title = item.url;
                         b.dataset.key = `${s.id}:service:${item.id}`;
                         b.disabled = running;
-                        b.onclick = () => selectMenuAction([s.id], 'open', item.id);
+                        b.onclick = () => selectMenuAction([s.id], 'open', item.id, item.url);
                         list.append(b);
                     }
                 section.append(list);

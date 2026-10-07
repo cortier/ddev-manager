@@ -139,6 +139,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
             action: 'open',
             ids: ['inventory-sync-api'],
             serviceId: 'buggregator',
+            serviceUrl: 'https://api.test:8777',
         });
         await expect(page.locator('.service-menu')).toHaveCount(0);
         await page.screenshot({ path: `dist/popup-${colorScheme}.png` });

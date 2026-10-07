@@ -260,6 +260,16 @@ browser.runtime.onMessage.addListener((message: any) => {
                 await refresh();
                 return state;
             case 'action':
+                if (
+                    message.action === 'open' &&
+                    message.serviceId &&
+                    typeof message.serviceUrl === 'string' &&
+                    message.ids?.length === 1 &&
+                    state.surfaces.find((surface) => surface.id === message.ids[0])?.status === 'running'
+                ) {
+                    await browser.tabs.create({ url: message.serviceUrl });
+                    return { ok: true };
+                }
                 enqueue(message.ids, message.action, message.serviceId);
                 return { ok: true };
             case 'services': {
