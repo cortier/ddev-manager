@@ -1,4 +1,4 @@
-import { safeURL, surfaceType, type State, type Surface, type Service, type Settings } from './model';
+import { safeURL, type State, type Surface, type Service, type Settings } from './model';
 const HOST = 'com.cortier.ddev_manager';
 let state: State = {
     surfaces: [],
@@ -13,12 +13,8 @@ const pending = new Map<
     string,
     { resolve: (v: any) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }
 >();
-interface ServiceTemplate {
-    source: Surface;
-    services: Service[];
-}
-const services = new Map<string, ServiceTemplate>();
-const serviceLoads = new Map<string, Promise<ServiceTemplate>>();
+const services = new Map<string, Service[]>();
+const serviceLoads = new Map<string, Promise<Service[]>>();
 let refreshing: Promise<void> | undefined;
 let registration: Promise<void> | undefined;
 let registered = false;
@@ -119,52 +115,25 @@ function applyCompletedStatus(id: string, action: string) {
     if (action === 'stop') surface.status = 'stopped';
     else if (['start', 'restart', 'open'].includes(action)) surface.status = 'running';
 }
-function serviceKey(surface: Surface) {
-    return surfaceType(surface, state.settings.overrides).trim().toLocaleLowerCase();
-}
 function loadServices(surface: Surface) {
-    const key = serviceKey(surface);
+    const key = surface.id;
     const cached = services.get(key);
     if (cached) return Promise.resolve(cached);
     const existing = serviceLoads.get(key);
     if (existing) return existing;
     const loading = native<Service[]>('services', { surfaceId: surface.id })
         .then((items) => {
-            const template = { source: surface, services: items };
-            services.set(key, template);
-            return template;
+            services.set(key, items);
+            return items;
         })
         .finally(() => serviceLoads.delete(key));
     serviceLoads.set(key, loading);
     return loading;
 }
-function servicesFor(template: ServiceTemplate, surface: Surface) {
-    let source: URL;
-    let target: URL;
-    try {
-        source = new URL(template.source.url);
-        target = new URL(surface.url);
-    } catch {
-        return template.services;
-    }
-    return template.services.map((service) => {
-        try {
-            const url = new URL(service.url);
-            if (url.hostname === source.hostname) url.hostname = target.hostname;
-            else if (url.hostname.endsWith(`.${source.hostname}`))
-                url.hostname = `${url.hostname.slice(0, -source.hostname.length)}${target.hostname}`;
-            return { ...service, url: url.href };
-        } catch {
-            return service;
-        }
-    });
-}
 function warmServices() {
-    const types = new Set<string>();
     for (const surface of state.surfaces) {
-        const key = serviceKey(surface);
-        if (surface.warning || types.has(key) || services.has(key)) continue;
-        types.add(key);
+        const key = surface.id;
+        if (surface.warning || services.has(key)) continue;
         void loadServices(surface).catch(() => {});
     }
 }
@@ -275,7 +244,7 @@ browser.runtime.onMessage.addListener((message: any) => {
             case 'services': {
                 const surface = state.surfaces.find((item) => item.id === message.id);
                 if (!surface) throw new Error('Refresh the task list before retrying.');
-                return servicesFor(await loadServices(surface), surface);
+                return loadServices(surface);
             }
             case 'diagnostics':
                 return native('diagnostics');

@@ -114,12 +114,17 @@ it('sends IDE actions through the native companion', async () => {
     });
     expect(opened).toEqual([]);
 });
-it('eagerly loads one service template per surface type and reuses it', async () => {
-    await vi.waitFor(() => expect(calls.filter((call) => call.method === 'services')).toHaveLength(2));
+it('loads and caches services separately for every worktree', async () => {
+    await vi.waitFor(() => expect(calls.filter((call) => call.method === 'services')).toHaveLength(3));
+    expect(calls.filter((call) => call.method === 'services').map((call) => call.surfaceId)).toEqual([
+        'api',
+        'app',
+        'api-two',
+    ]);
     const before = calls.length;
     const result = await listener({ type: 'services', id: 'api-two' });
     expect(calls).toHaveLength(before);
-    expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator', url: 'https://api-two.test:8777/' }]);
+    expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator', url: 'https://api-two.test:8777' }]);
 });
 it('opens a cached service URL immediately for a running surface', async () => {
     const actionCalls = calls.filter((call) => call.method === 'action').length;
