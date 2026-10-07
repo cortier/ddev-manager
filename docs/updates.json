@@ -3,9 +3,9 @@
         "ddev-manager@cortier.com": {
             "updates": [
                 {
-                    "version": "0.1.3",
-                    "update_link": "https://github.com/cortier/ddev-manager/releases/download/v0.1.3/ddev-manager-0.1.3.xpi",
-                    "update_hash": "sha256:f2864890f018da11ddb9691b4fca906d3437dea0ca222aa12296e9b349b70a0a"
+                    "version": "0.1.4",
+                    "update_link": "https://github.com/cortier/ddev-manager/releases/download/v0.1.4/ddev-manager-0.1.4.xpi",
+                    "update_hash": "sha256:165729a118e4f9a540377ed42608dd7cebab6138114e4db96b1d71a8755cbd73"
                 }
             ]
         }
