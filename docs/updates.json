@@ -1,7 +1,13 @@
 {
     "addons": {
         "ddev-manager@cortier.com": {
-            "updates": []
+            "updates": [
+                {
+                    "version": "0.1.2",
+                    "update_link": "https://github.com/cortier/ddev-manager/releases/download/v0.1.2/ddev-manager-0.1.2.xpi",
+                    "update_hash": "sha256:4f032397f920c256b2e5419c0f42738e31a4479aac15677560a99f907b99669c"
+                }
+            ]
         }
     }
 }
