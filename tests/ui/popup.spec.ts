@@ -131,6 +131,8 @@ for (const colorScheme of ['dark', 'light'] as const) {
             action: 'ide',
             ids: ['inventory-sync-api'],
         });
+        await expect(page.locator('.service-menu')).toHaveCount(0);
+        await page.getByRole('button', { name: 'Services for inventory-sync-api' }).click();
         await page.getByRole('button', { name: 'Buggregator', exact: true }).click();
         expect(await page.evaluate(() => (window as any).requests.at(-1))).toMatchObject({
             type: 'action',
@@ -138,6 +140,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
             ids: ['inventory-sync-api'],
             serviceId: 'buggregator',
         });
+        await expect(page.locator('.service-menu')).toHaveCount(0);
         await page.screenshot({ path: `dist/popup-${colorScheme}.png` });
     });
 }

@@ -47,6 +47,11 @@ async function action(ids: string[], kind: string, serviceId?: string) {
         error(e);
     }
 }
+function selectMenuAction(ids: string[], kind: string, serviceId?: string) {
+    menu = undefined;
+    render();
+    void action(ids, kind, serviceId);
+}
 async function toggleServices(id: string) {
     menu = menu === id ? undefined : id;
     render();
@@ -156,7 +161,7 @@ function render() {
                 ide.textContent = 'Open in IDE';
                 ide.dataset.key = `${s.id}:ide`;
                 ide.disabled = running;
-                ide.onclick = () => void action([s.id], 'ide');
+                ide.onclick = () => selectMenuAction([s.id], 'ide');
                 list.append(ide);
                 const divider = document.createElement('hr');
                 divider.className = 'service-divider';
@@ -172,7 +177,7 @@ function render() {
                         b.title = item.url;
                         b.dataset.key = `${s.id}:service:${item.id}`;
                         b.disabled = running;
-                        b.onclick = () => void action([s.id], 'open', item.id);
+                        b.onclick = () => selectMenuAction([s.id], 'open', item.id);
                         list.append(b);
                     }
                 section.append(list);
