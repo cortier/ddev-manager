@@ -43,6 +43,7 @@ test.beforeEach(async ({ page }) => {
             (window as any).storageWrites = [];
             (window as any).browser = {
                 runtime: {
+                    getManifest: () => ({ version: '0.1.2' }),
                     onMessage: { addListener: () => {} },
                     sendMessage: async (m: any) => {
                         (window as any).requests.push(m);
@@ -174,6 +175,7 @@ test('task commands carry all surfaces and keyboard focus is visible', async ({ 
 });
 test('settings cog opens the Firefox options page', async ({ page }) => {
     await page.goto('/popup.html');
+    await expect(page.getByLabel('Extension version')).toHaveText('v0.1.2');
     await expect(page.locator('footer').getByRole('button')).toHaveCount(0);
     await page.getByRole('button', { name: 'Settings' }).click();
     await expect.poll(() => page.evaluate(() => (window as any).optionsOpened)).toBe(true);

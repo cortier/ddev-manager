@@ -3,6 +3,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const search = $<HTMLInputElement>('search');
 const runningOnly = $<HTMLInputElement>('running-only');
 const tasks = $('tasks');
+$('version').textContent = `v${browser.runtime.getManifest().version}`;
 let state: State | undefined;
 let menu: string | undefined;
 const menus = new Map<string, Service[] | string>();

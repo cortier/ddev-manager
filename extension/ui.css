@@ -277,6 +277,8 @@ input::placeholder {
 footer {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 8px 16px;
     border-top: 1px solid var(--line);
     min-height: 45px;
@@ -285,6 +287,9 @@ footer {
 footer span {
     font-size: 11px;
     color: var(--muted);
+}
+#version {
+    flex-shrink: 0;
 }
 .options {
     max-width: 700px;
