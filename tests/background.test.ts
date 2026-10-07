@@ -124,19 +124,24 @@ it('loads and caches services separately for every worktree', async () => {
     const before = calls.length;
     const result = await listener({ type: 'services', id: 'api-two' });
     expect(calls).toHaveLength(before);
-    expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator', url: 'https://api-two.test:8777' }]);
+    expect(result).toEqual([{ id: 'buggregator', name: 'Buggregator' }]);
 });
-it('opens a cached service URL immediately for a running surface', async () => {
-    const actionCalls = calls.filter((call) => call.method === 'action').length;
+it('resolves a service through the companion every time it is opened', async () => {
     await listener({
         type: 'action',
         ids: ['api'],
         action: 'open',
         serviceId: 'buggregator',
-        serviceUrl: 'https://api.test:8777/',
     });
-    expect(opened).toEqual(['https://api.test:8777/']);
-    expect(calls.filter((call) => call.method === 'action')).toHaveLength(actionCalls);
+    await vi.waitFor(() => expect(opened).toHaveLength(1));
+    await listener({
+        type: 'action',
+        ids: ['api'],
+        action: 'open',
+        serviceId: 'buggregator',
+    });
+    await vi.waitFor(() => expect(opened).toHaveLength(2));
+    expect(calls.filter((call) => call.method === 'action' && call.serviceId === 'buggregator')).toHaveLength(2);
 });
 it('starts a stopped surface before opening its service', async () => {
     surfaces[0].status = 'stopped';
@@ -146,7 +151,6 @@ it('starts a stopped surface before opening its service', async () => {
         ids: ['api'],
         action: 'open',
         serviceId: 'buggregator',
-        serviceUrl: 'https://api.test:8777/',
     });
     await vi.waitFor(() =>
         expect(calls.some((call) => call.method === 'action' && call.serviceId === 'buggregator')).toBe(true),

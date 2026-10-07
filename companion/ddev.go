@@ -236,6 +236,21 @@ func browserServiceLabel(name string) (string, bool) {
 	return label, ok
 }
 
+func (m *Manager) resolveServiceURL(ctx context.Context, p Project, service string) (string, error) {
+	if _, allowed := browserServiceLabel(service); !allowed {
+		return "", errors.New("Service is not available for browser launch")
+	}
+	b, e := m.ddev(ctx, p.Root, "url", service)
+	if e != nil {
+		return "", e
+	}
+	u := firstURL(b)
+	if u == "" {
+		return "", errors.New("DDEV did not return a URL for the service")
+	}
+	return u, nil
+}
+
 func (m *Manager) services(ctx context.Context, p Project) ([]Service, error) {
 	b, e := m.ddev(ctx, p.Root, "describe", "--json-output")
 	if e != nil {
@@ -377,6 +392,11 @@ func (m *Manager) action(ctx context.Context, id, action, service string) (any, 
 			}
 			return map[string]bool{"ok": true}, nil
 		}
+		if service != "" {
+			if _, allowed := browserServiceLabel(service); !allowed {
+				return nil, errors.New("Service is not available for browser launch")
+			}
+		}
 		command := ""
 		switch action {
 		case "start":
@@ -407,24 +427,18 @@ func (m *Manager) action(ctx context.Context, id, action, service string) (any, 
 		if action != "open" {
 			return map[string]bool{"ok": true}, nil
 		}
-		p, e = m.project(ctx, id)
-		if e != nil {
-			return nil, e
+		if command != "" {
+			p, e = m.project(ctx, id)
+			if e != nil {
+				return nil, e
+			}
 		}
 		if p.Status != "running" {
 			return nil, errors.New("Project did not become ready after startup")
 		}
 		if service != "" {
-			ss, e := m.services(ctx, p)
-			if e != nil {
-				return nil, e
-			}
-			for _, s := range ss {
-				if s.ID == service {
-					return map[string]string{"url": s.URL}, nil
-				}
-			}
-			return nil, errors.New("Service is no longer configured")
+			u, e := m.resolveServiceURL(ctx, p, service)
+			return map[string]string{"url": u}, e
 		}
 		u, e := m.primary(ctx, p)
 		return map[string]string{"url": u}, e

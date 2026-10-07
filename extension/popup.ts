@@ -40,17 +40,17 @@ function text(tag: string, value: string, className = '') {
 function error(e: unknown) {
     $('notice').textContent = e instanceof Error ? e.message : String(e);
 }
-async function action(ids: string[], kind: string, serviceId?: string, serviceUrl?: string) {
+async function action(ids: string[], kind: string, serviceId?: string) {
     try {
-        await browser.runtime.sendMessage({ type: 'action', ids, action: kind, serviceId, serviceUrl });
+        await browser.runtime.sendMessage({ type: 'action', ids, action: kind, serviceId });
     } catch (e) {
         error(e);
     }
 }
-function selectMenuAction(ids: string[], kind: string, serviceId?: string, serviceUrl?: string) {
+function selectMenuAction(ids: string[], kind: string, serviceId?: string) {
     menu = undefined;
     render();
-    void action(ids, kind, serviceId, serviceUrl);
+    void action(ids, kind, serviceId);
 }
 async function toggleServices(id: string) {
     menu = menu === id ? undefined : id;
@@ -174,10 +174,9 @@ function render() {
                     for (const item of items) {
                         const b = document.createElement('button');
                         b.textContent = item.name;
-                        b.title = item.url;
                         b.dataset.key = `${s.id}:service:${item.id}`;
                         b.disabled = running;
-                        b.onclick = () => selectMenuAction([s.id], 'open', item.id, item.url);
+                        b.onclick = () => selectMenuAction([s.id], 'open', item.id);
                         list.append(b);
                     }
                 section.append(list);

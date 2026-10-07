@@ -39,6 +39,8 @@ func fixtureManager(t *testing.T) (*Manager, *Project, *[]string) {
 		case "stop":
 			p.Status = "stopped"
 			return nil, nil
+		case "url buggregator":
+			return []byte("https://worktree-specific.test:8777\n"), nil
 		case "describe --json-output":
 			return envelope(map[string]any{"services": map[string]any{"web": map[string]any{"https_url": p.URL}, "buggregator": map[string]any{"https_url": "https://example.test:8777"}, "webhook-site": map[string]any{"https_url": "https://example.test:8084"}, "ministack": map[string]any{"https_url": "https://example.test:3900"}, "redis": map[string]any{}}}), nil
 		case "utility configyaml --full-yaml --omit-keys=web_environment":
@@ -135,6 +137,14 @@ func TestFailedStartDoesNotResolveURL(t *testing.T) {
 }
 func TestServiceDiscovery(t *testing.T) {
 	m, p, _ := fixtureManager(t)
+	original := m.run
+	serviceDirectory := ""
+	m.run = func(ctx context.Context, dir, binary string, args ...string) ([]byte, error) {
+		if strings.Join(args, " ") == "url buggregator" {
+			serviceDirectory = dir
+		}
+		return original(ctx, dir, binary, args...)
+	}
 	services, e := m.services(context.Background(), *p)
 	if e != nil || len(services) != 3 {
 		t.Fatal(services, e)
@@ -153,6 +163,11 @@ func TestServiceDiscovery(t *testing.T) {
 	_, e = m.action(context.Background(), p.Name, "open", "unknown")
 	if e == nil {
 		t.Fatal("Unknown service accepted")
+	}
+	p.Status = "running"
+	result, e := m.action(context.Background(), p.Name, "open", "buggregator")
+	if e != nil || result.(map[string]string)["url"] != "https://worktree-specific.test:8777" || serviceDirectory != p.Root {
+		t.Fatal(result, e)
 	}
 }
 func TestCustomURLAndFallback(t *testing.T) {

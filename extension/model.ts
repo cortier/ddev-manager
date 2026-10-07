@@ -11,7 +11,6 @@ export interface Surface {
 export interface Service {
     id: string;
     name: string;
-    url: string;
     status?: string;
 }
 export interface Override {

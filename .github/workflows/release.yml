@@ -21,7 +21,7 @@ jobs:
     release:
         if: github.ref == 'refs/heads/main'
         environment: release
-        runs-on: ubuntu-24.04
+        runs-on: blacksmith-2vcpu-ubuntu-2404
         timeout-minutes: 360
         steps:
             - uses: actions/checkout@v7.0.1
@@ -115,6 +115,6 @@ jobs:
                     dist/ddev-manager-linux-arm64.tar.gz \
                     dist/ddev-manager-darwin-amd64.tar.gz \
                     dist/ddev-manager-darwin-arm64.tar.gz \
-                    --title "DDEV Manager $VERSION" \
+                    --title "v$VERSION" \
                     --generate-notes \
                     --verify-tag
