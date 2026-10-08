@@ -62,6 +62,65 @@ func TestDiscovery(t *testing.T) {
 		t.Fatalf("Missing directory not retained: %+v %v", got, e)
 	}
 }
+
+func TestDiscoveryRecoversDDEVContainerMissingFromRegistry(t *testing.T) {
+	m, _, _ := fixtureManager(t)
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, ".ddev"), 0700)
+	os.WriteFile(filepath.Join(root, ".ddev", "config.yaml"), []byte("name: missing-app\n"), 0600)
+	m.dockerPath = "docker"
+	original := m.run
+	m.run = func(ctx context.Context, dir, binary string, args ...string) ([]byte, error) {
+		key := strings.Join(args, " ")
+		if binary == "docker" && strings.HasPrefix(key, "ps -a ") {
+			return []byte("missing-app\t" + root + "\n"), nil
+		}
+		if dir == root && key == "describe --json-output" {
+			return envelope(Project{Name: "missing-app", Root: root, Status: "paused", URL: "https://missing-app.test"}), nil
+		}
+		if dir == root && key == "branch --show-current" {
+			return []byte("feat/example\n"), nil
+		}
+		if dir == root && key == "rev-parse --path-format=absolute --git-common-dir" {
+			return []byte(filepath.Join(root, "repo-app", ".git")), nil
+		}
+		return original(ctx, dir, binary, args...)
+	}
+
+	got, e := m.discover(context.Background())
+	if e != nil || len(got) != 2 {
+		t.Fatalf("%+v %v", got, e)
+	}
+	if got[1].ID != "missing-app" || got[1].Branch != "feat/example" || got[1].Repository != "repo-app" || got[1].Status != "paused" {
+		t.Fatalf("Recovered surface mismatch: %+v", got[1])
+	}
+	if _, e = m.project(context.Background(), "missing-app"); e != nil {
+		t.Fatalf("Recovered surface is not actionable: %v", e)
+	}
+}
+
+func TestContainerDiscoveryRejectsUnverifiedLabels(t *testing.T) {
+	m, _, _ := fixtureManager(t)
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, ".ddev"), 0700)
+	os.WriteFile(filepath.Join(root, ".ddev", "config.yaml"), []byte("name: claimed\n"), 0600)
+	m.dockerPath = "docker"
+	original := m.run
+	m.run = func(ctx context.Context, dir, binary string, args ...string) ([]byte, error) {
+		key := strings.Join(args, " ")
+		if binary == "docker" {
+			return []byte("claimed\t" + root + "\n"), nil
+		}
+		if dir == root && key == "describe --json-output" {
+			return envelope(Project{Name: "different", Root: root, Status: "running"}), nil
+		}
+		return original(ctx, dir, binary, args...)
+	}
+	got, e := m.discover(context.Background())
+	if e != nil || len(got) != 1 {
+		t.Fatalf("Unverified container was accepted: %+v %v", got, e)
+	}
+}
 func TestStartBeforeOpen(t *testing.T) {
 	m, p, calls := fixtureManager(t)
 	v, e := m.action(context.Background(), p.Name, "open", "")

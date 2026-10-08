@@ -90,7 +90,7 @@ func dispatch(l Layout, r Request) (any, error) {
 	if e != nil {
 		return nil, e
 	}
-	m := &Manager{config: c, layout: l, run: runCommand, launch: launchCommand}
+	m := &Manager{config: c, layout: l, run: runCommand, launch: launchCommand, dockerPath: dockerExecutable()}
 	duration := 45 * time.Second
 	if r.Method == "action" {
 		duration = 20 * time.Minute

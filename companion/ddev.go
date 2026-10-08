@@ -50,11 +50,12 @@ type Project struct {
 }
 type Runner func(context.Context, string, string, ...string) ([]byte, error)
 type Manager struct {
-	config Config
-	layout Layout
-	run    Runner
-	launch Runner
-	mu     sync.Mutex
+	config     Config
+	layout     Layout
+	run        Runner
+	launch     Runner
+	dockerPath string
+	mu         sync.Mutex
 }
 
 func runCommand(ctx context.Context, dir, binary string, args ...string) ([]byte, error) {
@@ -116,7 +117,7 @@ func rawJSON(data []byte, target any) error {
 	}
 	return errors.New("DDEV did not return valid project metadata")
 }
-func (m *Manager) projects(ctx context.Context) ([]Project, error) {
+func (m *Manager) registeredProjects(ctx context.Context) ([]Project, error) {
 	b, e := m.ddev(ctx, "", "list", "--json-output")
 	if e != nil {
 		return nil, e
@@ -124,6 +125,74 @@ func (m *Manager) projects(ctx context.Context) ([]Project, error) {
 	var p []Project
 	e = rawJSON(b, &p)
 	return p, e
+}
+
+func dockerExecutable() string {
+	p, _ := exec.LookPath("docker")
+	return p
+}
+
+func (m *Manager) containerProjects(ctx context.Context) []Project {
+	if m.dockerPath == "" {
+		return nil
+	}
+	b, e := m.run(ctx, "", m.dockerPath,
+		"ps", "-a",
+		"--filter", "label=com.ddev.platform=ddev",
+		"--filter", "label=com.docker.compose.service=web",
+		"--format", `{{.Label "com.ddev.site-name"}}\t{{.Label "com.ddev.approot"}}`,
+	)
+	if e != nil {
+		return nil
+	}
+	projects := make([]Project, 0)
+	seen := make(map[string]bool)
+	for _, line := range strings.Split(strings.TrimSpace(string(b)), "\n") {
+		fields := strings.SplitN(line, "\t", 2)
+		if len(fields) != 2 {
+			continue
+		}
+		name, root := strings.TrimSpace(fields[0]), filepath.Clean(strings.TrimSpace(fields[1]))
+		if name == "" || !filepath.IsAbs(root) || seen[name+"\x00"+root] {
+			continue
+		}
+		seen[name+"\x00"+root] = true
+		if info, statErr := os.Stat(filepath.Join(root, ".ddev", "config.yaml")); statErr != nil || info.IsDir() {
+			continue
+		}
+		detail, describeErr := m.ddev(ctx, root, "describe", "--json-output")
+		if describeErr != nil {
+			continue
+		}
+		var p Project
+		if rawJSON(detail, &p) != nil || p.Name != name || filepath.Clean(p.Root) != root {
+			continue
+		}
+		projects = append(projects, p)
+	}
+	return projects
+}
+
+func (m *Manager) projects(ctx context.Context) ([]Project, error) {
+	projects, e := m.registeredProjects(ctx)
+	if e != nil {
+		return nil, e
+	}
+	knownNames := make(map[string]bool, len(projects))
+	knownRoots := make(map[string]bool, len(projects))
+	for _, p := range projects {
+		knownNames[p.Name] = true
+		knownRoots[filepath.Clean(p.Root)] = true
+	}
+	for _, p := range m.containerProjects(ctx) {
+		if knownNames[p.Name] || knownRoots[filepath.Clean(p.Root)] {
+			continue
+		}
+		projects = append(projects, p)
+		knownNames[p.Name] = true
+		knownRoots[filepath.Clean(p.Root)] = true
+	}
+	return projects, nil
 }
 func (m *Manager) project(ctx context.Context, id string) (Project, error) {
 	ps, e := m.projects(ctx)
