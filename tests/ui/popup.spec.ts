@@ -110,13 +110,14 @@ for (const colorScheme of ['dark', 'light'] as const) {
         expect(dividerTop).toBeLessThan(serviceTop);
         const taskButtons = await Promise.all(
             [
-                'Start all surfaces in inventory-sync',
-                'Restart all surfaces in inventory-sync',
+                'Start all stopped surfaces in inventory-sync',
+                'Restart all running surfaces in inventory-sync',
                 'Stop all surfaces in inventory-sync',
+                'Delete task inventory-sync',
             ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
         );
         const surfaceButtons = await Promise.all(
-            ['Restart inventory-sync-api', 'Stop inventory-sync-api', 'Services for inventory-sync-api'].map((name) =>
+            ['Restart inventory-sync-api', 'Stop inventory-sync-api', 'Delete inventory-sync-api', 'Services for inventory-sync-api'].map((name) =>
                 page.getByRole('button', { name, exact: true }).boundingBox(),
             ),
         );

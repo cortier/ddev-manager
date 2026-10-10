@@ -170,7 +170,7 @@ async function refresh(silent = false) {
     return refreshing;
 }
 function enqueue(ids: string[], action: string, serviceId?: string) {
-    if (!['start', 'restart', 'stop', 'open', 'ide'].includes(action)) throw new Error('Unsupported action.');
+    if (!['start', 'restart', 'stop', 'open', 'ide', 'delete'].includes(action)) throw new Error('Unsupported action.');
     const known = new Set(state.surfaces.map((s) => s.id));
     const unique = [...new Set(ids)];
     if (!unique.length || unique.some((id) => !known.has(id)))
@@ -188,9 +188,11 @@ function enqueue(ids: string[], action: string, serviceId?: string) {
                           ? 'Opening…'
                           : action === 'stop'
                             ? 'Stopping…'
-                            : action === 'restart'
-                              ? 'Restarting…'
-                              : 'Starting…',
+                          : action === 'restart'
+                            ? 'Restarting…'
+                            : action === 'delete'
+                              ? 'Deleting…'
+                            : 'Starting…',
                 state: 'busy',
             }),
     );
@@ -204,7 +206,10 @@ function enqueue(ids: string[], action: string, serviceId?: string) {
                         if (!result.url) throw new Error('No URL returned.');
                         await browser.tabs.create({ url: safeURL(result.url) });
                     }
-                    applyCompletedStatus(id, action);
+                    if (action === 'delete') {
+                        state.surfaces = state.surfaces.filter((surface) => surface.id !== id);
+                        delete state.operations[id];
+                    } else applyCompletedStatus(id, action);
                     state.operations[id] = { surfaceId: id, label: 'Done', state: 'success' };
                 } catch (e) {
                     state.operations[id] = { surfaceId: id, label: 'Failed', state: 'error', message: errorText(e) };

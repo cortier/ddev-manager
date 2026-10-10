@@ -481,6 +481,19 @@ func (m *Manager) action(ctx context.Context, id, action, service string) (any, 
 			if p.Status != "stopped" {
 				command = "stop"
 			}
+		case "delete":
+			if _, e = m.ddev(ctx, p.Root, "delete", "--omit-snapshot", "--yes"); e != nil {
+				return nil, e
+			}
+			if branch, branchErr := m.run(ctx, p.Root, m.config.GitPath, "branch", "--show-current"); branchErr == nil {
+				name := strings.TrimSpace(string(branch))
+				if name != "" {
+					if _, e = m.run(ctx, p.Root, m.config.GitPath, "branch", "-D", name); e != nil {
+						return nil, e
+					}
+				}
+			}
+			return map[string]bool{"ok": true}, nil
 		case "open":
 			if p.Status != "running" {
 				command = "start"

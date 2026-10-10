@@ -11,6 +11,7 @@ const paths: Record<string, string> = {
     start: 'M5 3l10 7-10 7Z',
     restart: 'M16 7A7 7 0 1 0 17 12M16 2v5h-5',
     stop: 'M5 5h10v10H5Z',
+    delete: 'M4 6h12M8 6V4h4v2m-6 0 1 11h6l1-11M9 9v5m2-5v5',
     services: 'M10 4v.01M10 10v.01M10 16v.01',
 };
 function button(label: string, icon: string, fn: () => void, key: string) {
@@ -111,12 +112,22 @@ function render() {
         const actions = text('div', '', 'actions');
         const ids = all.find((item) => item.id === task.id)?.surfaces.map((surface) => surface.id) || [];
         const busy = ids.some((id) => state?.operations[id]?.state === 'busy');
-        for (const kind of ['start', 'restart', 'stop']) {
-            const label = `${kind[0].toUpperCase() + kind.slice(1)} all surfaces in ${task.name}`;
-            const b = button(label, kind, () => void action(ids, kind), `${task.id}:${kind}`);
-            b.disabled = busy;
+        for (const kind of ['start', 'restart', 'stop'] as const) {
+            const eligible = kind === 'start'
+                ? ids.filter((id) => all.find((item) => item.id === task.id)?.surfaces.some((s) => s.id === id && s.status === 'stopped'))
+                : kind === 'restart'
+                  ? ids.filter((id) => all.find((item) => item.id === task.id)?.surfaces.some((s) => s.id === id && s.status === 'running'))
+                  : ids;
+            const verb = kind === 'start' ? 'Start all stopped surfaces in' : kind === 'restart' ? 'Restart all running surfaces in' : 'Stop all surfaces in';
+            const b = button(`${verb} ${task.name}`, kind, () => void action(eligible, kind), `${task.id}:${kind}`);
+            b.disabled = busy || !eligible.length;
             actions.append(b);
         }
+        const deleteTask = button(`Delete task ${task.name}`, 'delete', () => {
+            if (confirm(`Delete task ${task.name} and all its surfaces and branches?`)) void action(ids, 'delete');
+        }, `${task.id}:delete`);
+        deleteTask.disabled = busy;
+        actions.append(deleteTask);
         heading.append(actions);
         section.append(heading);
         if (task.branch) section.append(text('p', task.branch, 'branch'));
@@ -136,7 +147,7 @@ function render() {
             open.onclick = () => void action([s.id], 'open');
             row.append(open);
             const kind = s.status === 'running' ? 'restart' : 'start';
-            for (const k of [kind, 'stop']) {
+            for (const k of [kind, 'stop'] as const) {
                 const b = button(
                     `${k[0].toUpperCase() + k.slice(1)} ${s.name}`,
                     k,
@@ -146,6 +157,11 @@ function render() {
                 b.disabled = running || !!s.warning || (k === 'stop' && s.status === 'stopped');
                 row.append(b);
             }
+            const deleteSurface = button(`Delete ${s.name}`, 'delete', () => {
+                if (confirm(`Delete ${s.name} and its branch?`)) void action([s.id], 'delete');
+            }, `${s.id}:delete`);
+            deleteSurface.disabled = running || !!s.warning;
+            row.append(deleteSurface);
             const serviceButton = button(
                 `Services for ${s.name}`,
                 'services',
