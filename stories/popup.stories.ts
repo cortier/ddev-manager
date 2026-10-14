@@ -73,6 +73,16 @@ export const ServicesOpen: Story = {
         ),
 };
 
+export const IdeOnly: Story = {
+    render: () =>
+        extensionFrame(
+            popupHTML,
+            { state, services: { 'inventory-api': [] } },
+            'popup',
+            `<script>setTimeout(() => document.querySelector('[aria-label="Services for inventory-api"]')?.click(), 50)</script>`,
+        ),
+};
+
 export const Busy: Story = {
     render: () =>
         extensionFrame(

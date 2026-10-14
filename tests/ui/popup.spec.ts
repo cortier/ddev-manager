@@ -58,6 +58,7 @@ test.beforeEach(async ({ page }) => {
                                     idePath: '/usr/bin/code',
                                 },
                             };
+                        if (m.type === 'services' && m.id === 'inventory-sync-app') return [];
                         if (m.type === 'services')
                             return [
                                 { id: 'buggregator', name: 'Buggregator', url: 'https://api.test:8777' },
@@ -155,6 +156,10 @@ for (const colorScheme of ['dark', 'light'] as const) {
             serviceId: 'buggregator',
         });
         await expect(page.locator('.service-menu')).toHaveCount(0);
+        await page.getByRole('button', { name: 'Services for inventory-sync-app' }).click();
+        await expect(page.locator('.service-menu').getByRole('button', { name: 'Open in IDE' })).toBeVisible();
+        await expect(page.locator('.service-menu').locator('p')).toHaveCount(0);
+        await expect(page.locator('.service-menu').getByRole('separator')).toHaveCount(0);
         await page.screenshot({ path: `dist/popup-${colorScheme}.png` });
     });
 }

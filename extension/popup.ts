@@ -244,12 +244,11 @@ function render() {
                 list.append(ide);
                 const divider = document.createElement('hr');
                 divider.className = 'service-divider';
-                list.append(divider);
                 const items = menus.get(s.id);
-                if (!items) list.append(text('p', 'Finding services…'));
-                else if (typeof items === 'string') list.append(text('p', items));
-                else if (!items.length) list.append(text('p', 'No browser services found.'));
-                else
+                if (!items) list.append(divider, text('p', 'Finding services…'));
+                else if (typeof items === 'string') list.append(divider, text('p', items));
+                else if (items.length) {
+                    list.append(divider);
                     for (const item of items) {
                         const b = document.createElement('button');
                         b.className = 'service-menu-item';
@@ -264,6 +263,7 @@ function render() {
                         b.onclick = () => selectMenuAction([s.id], 'open', item.id);
                         list.append(b);
                     }
+                }
                 section.append(list);
             }
         }
