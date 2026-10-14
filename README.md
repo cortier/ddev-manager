@@ -130,6 +130,8 @@ Run `npm run storybook` and open `http://localhost:6106` to review the real exte
 
 Run `npm run build-storybook` to verify a production Storybook build.
 
+For the containerized development environment, run `ddev start` and then `ddev launch :6006`. Storybook runs automatically as a DDEV web extra daemon. Use `ddev storybook <args>` when invoking the Storybook CLI directly.
+
 ### Opt-in local integration checks
 
 `DDEV_MANAGER_LIVE=1 go test -run TestLiveDDEVLifecycle -v` (inside `companion/`) creates a disposable DDEV project, exercises its lifecycle, and deletes it afterward. It does not operate on existing projects.

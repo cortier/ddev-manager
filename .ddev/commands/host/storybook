@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## Description: Run the Storybook CLI inside the DDEV web container
+## Usage: storybook [args...]
+## Example: "ddev storybook --help"
+
+set -euo pipefail
+
+exec ddev exec npm exec storybook -- "$@"

@@ -1,0 +1,19 @@
+name: ddev-manager
+type: generic
+docroot: ''
+webserver_type: nginx-fpm
+xdebug_enabled: false
+nodejs_version: '24'
+corepack_enable: true
+omit_containers:
+    - db
+    - ddev-ssh-agent
+web_extra_daemons:
+    - name: storybook
+      command: '/bin/bash /var/www/html/scripts/storybook-daemon.sh'
+      directory: /var/www/html
+web_extra_exposed_ports:
+    - name: storybook
+      container_port: 6006
+      http_port: 6006
+      https_port: 6007

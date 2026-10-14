@@ -9,6 +9,7 @@
         "test": "vitest run",
         "test:ui": "playwright test",
         "storybook": "npm run build && storybook dev -p 6106 --no-open",
+        "storybook:ddev": "npm run build && storybook dev -p 6006 --host 0.0.0.0 --no-open",
         "build-storybook": "npm run build && storybook build",
         "lint:extension": "web-ext lint --source-dir dist/extension --self-hosted --warnings-as-errors",
         "package": "npm run build && node scripts/package.mjs"

@@ -264,9 +264,6 @@ input::placeholder {
 }
 .service-icon {
     object-fit: contain;
-    background: #fff;
-    border-radius: 3px;
-    padding: 1px;
 }
 .service-divider {
     height: 0;

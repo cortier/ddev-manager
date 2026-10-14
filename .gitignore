@@ -1,6 +1,7 @@
 node_modules/
 dist/
 storybook-static/
+.ddev/.storybook-vite-cache/
 playwright-report/
 test-results/
 coverage/
