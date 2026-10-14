@@ -242,7 +242,7 @@ input::placeholder {
     border-color: #d99a22;
 }
 .service-menu {
-    padding: 5px 8px 8px;
+    padding: 8px;
     background: var(--soft);
     border-radius: 4px;
     margin: 0 8px 5px;

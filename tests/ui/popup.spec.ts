@@ -160,6 +160,17 @@ for (const colorScheme of ['dark', 'light'] as const) {
         await expect(page.locator('.service-menu').getByRole('button', { name: 'Open in IDE' })).toBeVisible();
         await expect(page.locator('.service-menu').locator('p')).toHaveCount(0);
         await expect(page.locator('.service-menu').getByRole('separator')).toHaveCount(0);
+        const menuPadding = await page.locator('.service-menu').evaluate((menu) => {
+            const menuBox = menu.getBoundingClientRect();
+            const buttonBox = menu.querySelector('button')!.getBoundingClientRect();
+            return [
+                buttonBox.top - menuBox.top,
+                menuBox.right - buttonBox.right,
+                menuBox.bottom - buttonBox.bottom,
+                buttonBox.left - menuBox.left,
+            ];
+        });
+        expect(menuPadding).toEqual([8, 8, 8, 8]);
         await page.screenshot({ path: `dist/popup-${colorScheme}.png` });
     });
 }
