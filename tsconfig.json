@@ -5,9 +5,9 @@
         "moduleResolution": "bundler",
         "strict": true,
         "lib": ["ES2022", "DOM", "DOM.Iterable"],
-        "types": ["firefox-webext-browser"],
+        "types": ["firefox-webext-browser", "vite/client"],
         "noEmit": true,
         "skipLibCheck": true
     },
-    "include": ["extension/**/*.ts"]
+    "include": ["extension/**/*.ts", "stories/**/*.ts", ".storybook/**/*.ts"]
 }

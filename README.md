@@ -124,6 +124,12 @@ scripts/package-companion.sh
 
 Unit tests cover grouping, lifecycle behavior, services, URL handling, serialization, framing, profile registration, hostile requests, token replay, helper failure, installation, and idempotent cleanup. Firefox UI tests cover light/dark layouts, long names, keyboard access, search, services, and task actions. Background tests cover popup-independent batches, partial failure, duplicate actions, and reconnects. CI runs Go tests on Linux and macOS and builds all four companion targets.
 
+### Storybook
+
+Run `npm run storybook` and open `http://localhost:6106` to review the real extension UI without loading it in Firefox. Stories cover the normal popup, open services menu, busy operations, empty and disconnected states, and connected or unavailable settings. The preview uses the production extension bundle with a local mock of the Firefox APIs.
+
+Run `npm run build-storybook` to verify a production Storybook build.
+
 ### Opt-in local integration checks
 
 `DDEV_MANAGER_LIVE=1 go test -run TestLiveDDEVLifecycle -v` (inside `companion/`) creates a disposable DDEV project, exercises its lifecycle, and deletes it afterward. It does not operate on existing projects.

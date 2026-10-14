@@ -101,7 +101,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
         await expect(page.getByRole('button', { name: 'Open in IDE', exact: true }).locator('svg')).toHaveCount(1);
         await expect(page.getByRole('button', { name: 'Buggregator', exact: true }).locator('img')).toHaveAttribute(
             'src',
-            'service-icons/buggregator.svg',
+            'service-icons/buggregator.png',
         );
         await expect(page.getByRole('button', { name: 'webhook.site', exact: true }).locator('img')).toHaveAttribute(
             'src',

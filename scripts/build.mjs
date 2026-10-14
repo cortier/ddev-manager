@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { mkdir, copyFile, readdir } from 'node:fs/promises';
+import { mkdir, copyFile, cp, readdir } from 'node:fs/promises';
 await mkdir('dist/extension', { recursive: true });
 await build({
     entryPoints: ['extension/background.ts', 'extension/popup.ts', 'extension/options.ts'],
@@ -11,3 +11,4 @@ await build({
 });
 for (const file of await readdir('extension'))
     if (/\.(html|css|json|svg)$/.test(file)) await copyFile(`extension/${file}`, `dist/extension/${file}`);
+await cp('extension/service-icons', 'dist/extension/service-icons', { recursive: true });

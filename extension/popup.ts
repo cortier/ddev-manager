@@ -38,7 +38,7 @@ const icons: Record<string, { viewBox?: string; paths: string[]; acorn?: boolean
     },
 };
 const serviceIcons: Record<string, string> = {
-    buggregator: 'service-icons/buggregator.svg',
+    buggregator: 'service-icons/buggregator.png',
     storybook: 'service-icons/storybook.svg',
     'webhook-site': 'service-icons/webhook-site.ico',
 };

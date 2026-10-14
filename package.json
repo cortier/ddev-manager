@@ -8,15 +8,21 @@
         "check": "tsc --noEmit",
         "test": "vitest run",
         "test:ui": "playwright test",
+        "storybook": "npm run build && storybook dev -p 6106 --no-open",
+        "build-storybook": "npm run build && storybook build",
         "lint:extension": "web-ext lint --source-dir dist/extension --self-hosted --warnings-as-errors",
         "package": "npm run build && node scripts/package.mjs"
     },
     "devDependencies": {
         "@playwright/test": "^1.63.0",
+        "@storybook/addon-a11y": "^10.6.2",
+        "@storybook/html-vite": "^10.6.2",
         "@types/firefox-webext-browser": "^143.0.1",
         "esbuild": "^0.28.2",
         "prettier": "^3.9.9",
+        "storybook": "^10.6.2",
         "typescript": "^7.0.2",
+        "vite": "^8.3.4",
         "vitest": "^5.0.3",
         "web-ext": "^10.7.0"
     }
