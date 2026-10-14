@@ -147,3 +147,5 @@ npx web-ext sign --source-dir dist/extension --channel unlisted \
 Credentials must never be committed. Only signed XPIs belong in public releases.
 
 References: [Firefox native messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging), [uninstall URLs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime/setUninstallURL), [Mozilla signing](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/), [visual reference](https://github.com/mozilla/multi-account-containers/).
+
+UI icons use Mozilla's [Acorn desktop iconography](https://acorn.firefox.com/latest/desktop/styles/iconography-OJ7DtlvA). Service marks are sourced from the official [Buggregator](https://github.com/buggregator/server), [Storybook](https://github.com/storybookjs/brand), and [Webhook.site](https://webhook.site/) projects.

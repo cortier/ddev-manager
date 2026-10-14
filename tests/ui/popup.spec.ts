@@ -98,6 +98,15 @@ for (const colorScheme of ['dark', 'light'] as const) {
         expect(overflow).toBe(false);
         await page.getByRole('button', { name: 'Services for inventory-sync-api' }).click();
         await expect(page.getByRole('button', { name: 'Buggregator', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Open in IDE', exact: true }).locator('svg')).toHaveCount(1);
+        await expect(page.getByRole('button', { name: 'Buggregator', exact: true }).locator('img')).toHaveAttribute(
+            'src',
+            'service-icons/buggregator.svg',
+        );
+        await expect(page.getByRole('button', { name: 'webhook.site', exact: true }).locator('img')).toHaveAttribute(
+            'src',
+            'service-icons/webhook-site.ico',
+        );
         await expect(page.getByRole('separator')).toBeVisible();
         const ideBottom = await page
             .getByRole('button', { name: 'Open in IDE', exact: true })
@@ -117,9 +126,12 @@ for (const colorScheme of ['dark', 'light'] as const) {
             ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
         );
         const surfaceButtons = await Promise.all(
-            ['Restart inventory-sync-api', 'Stop inventory-sync-api', 'Delete inventory-sync-api', 'Services for inventory-sync-api'].map((name) =>
-                page.getByRole('button', { name, exact: true }).boundingBox(),
-            ),
+            [
+                'Restart inventory-sync-api',
+                'Stop inventory-sync-api',
+                'Delete inventory-sync-api',
+                'Services for inventory-sync-api',
+            ].map((name) => page.getByRole('button', { name, exact: true }).boundingBox()),
         );
         expect(surfaceButtons.map((box) => box?.x)).toEqual(taskButtons.map((box) => box?.x));
         const searchBox = await page.getByRole('searchbox').boundingBox();

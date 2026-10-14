@@ -119,6 +119,12 @@ h1 {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+.icon-button svg.acorn-icon,
+#settings svg,
+.service-menu-item svg {
+    fill: currentColor;
+    stroke: none;
+}
 #settings svg {
     width: 19px;
     height: 19px;
@@ -242,11 +248,25 @@ input::placeholder {
     margin: 0 8px 5px;
 }
 .service-menu button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     text-align: left;
     padding: 8px;
     width: 100%;
     overflow-wrap: anywhere;
+}
+.service-menu-item svg,
+.service-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.service-icon {
+    object-fit: contain;
+    background: #fff;
+    border-radius: 3px;
+    padding: 1px;
 }
 .service-divider {
     height: 0;
