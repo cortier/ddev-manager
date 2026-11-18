@@ -66,7 +66,7 @@ The native host name is `com.cortier.ddev_manager`, and the fixed extension ID i
 - Task branches group by branch regardless of product overrides. Search retains all surfaces of a matching task.
 - Clicking a surface starts it if needed and opens its URL in a new Firefox tab. Existing `ddev url` commands are preferred, with the DDEV primary URL as fallback. The literal `ddev launch` command is not executed because it can open a different default browser.
 - Browser services are discovered from `ddev describe` and effective `web_extra_exposed_ports`. The menu is limited to the curated browser-facing services Buggregator, webhook.site, and Storybook; internal HTTP endpoints such as Ministack, Reverb, and Vite are excluded. Buggregator and Storybook use project or global URL commands when present. A service may still be initializing after DDEV reports the project running; its independent readiness is not guaranteed.
-- Start all skips running surfaces. Restart all starts stopped/paused surfaces and restarts running ones. Stop all skips stopped surfaces. Batches run serially and continue after failures.
+- Start all starts stopped and paused surfaces. Restart all starts stopped/paused surfaces and restarts running ones. Stop all skips stopped surfaces. Batches run serially and continue after failures.
 - Commands continue when the popup closes. Firefox itself must remain running. If Firefox exits or the native connection fails during a command, inspect DDEV status before retrying; there is no persistent command daemon or automatic retry.
 
 ## Automatic and manual removal

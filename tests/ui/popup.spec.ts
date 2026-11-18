@@ -24,7 +24,7 @@ const surfaces = [
         branch: 'fix/a-very-long-task-name-that-needs-to-wrap-without-hiding-actions',
         repository: 'example-api',
         root: '/projects/example',
-        status: 'stopped',
+        status: 'paused',
         url: 'https://example.test',
     },
 ];
@@ -120,7 +120,7 @@ for (const colorScheme of ['dark', 'light'] as const) {
         expect(dividerTop).toBeLessThan(serviceTop);
         const taskButtons = await Promise.all(
             [
-                'Start all stopped surfaces in inventory-sync',
+                'Start all stopped or paused surfaces in inventory-sync',
                 'Restart all running surfaces in inventory-sync',
                 'Stop all surfaces in inventory-sync',
                 'Delete task inventory-sync',
@@ -182,13 +182,25 @@ test('search keeps siblings and no-match state is readable', async ({ page }) =>
     await page.getByRole('searchbox').fill('unknown');
     await expect(page.getByText('No tasks match your filters.')).toBeVisible();
 });
-test('running filter hides stopped surfaces and saves its selection', async ({ page }) => {
+test('running filter hides paused surfaces and saves its selection', async ({ page }) => {
     await page.goto('/popup.html');
     const filter = page.getByRole('checkbox', { name: 'Only show running projects' });
     await filter.check();
     await expect(page.getByRole('heading', { name: /a-very-long/ })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Open API, running' })).toBeVisible();
     await expect.poll(() => page.evaluate(() => (window as any).storageWrites.at(-1))).toEqual({ runningOnly: true });
+});
+test('group start includes paused surfaces and skips running surfaces', async ({ page }) => {
+    await page.goto('/popup.html');
+    await expect(
+        page.getByRole('button', { name: 'Start all stopped or paused surfaces in inventory-sync', exact: true }),
+    ).toBeDisabled();
+    await page.getByRole('button', { name: /^Start all stopped or paused surfaces in a-very-long/ }).click();
+    expect(await page.evaluate(() => (window as any).requests.at(-1))).toMatchObject({
+        type: 'action',
+        action: 'start',
+        ids: ['example-api'],
+    });
 });
 test('task commands carry all surfaces and keyboard focus is visible', async ({ page }) => {
     await page.goto('/popup.html');

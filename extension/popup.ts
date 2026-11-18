@@ -155,7 +155,9 @@ function render() {
                     ? ids.filter((id) =>
                           all
                               .find((item) => item.id === task.id)
-                              ?.surfaces.some((s) => s.id === id && s.status === 'stopped'),
+                              ?.surfaces.some(
+                                  (s) => s.id === id && (s.status === 'stopped' || s.status === 'paused'),
+                              ),
                       )
                     : kind === 'restart'
                       ? ids.filter((id) =>
@@ -166,7 +168,7 @@ function render() {
                       : ids;
             const verb =
                 kind === 'start'
-                    ? 'Start all stopped surfaces in'
+                    ? 'Start all stopped or paused surfaces in'
                     : kind === 'restart'
                       ? 'Restart all running surfaces in'
                       : 'Stop all surfaces in';
